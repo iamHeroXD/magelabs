@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>MageLabs — Independent Technology Collective</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#101012; --bg2:#161618; --text:#f2efe8; --dim:#9b988f; --dim2:#68655d;
+  --line:rgba(255,255,255,.09); --card:rgba(255,255,255,.035); --card-h:rgba(255,255,255,.06);
+  --accent:#c08a4e; --accent2:#5f7a72; --status:#5fae7e; --radius:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,.logo-text{font-family:'Space Grotesk',system-ui,sans-serif}
+img{max-width:100%;display:block}
+a{color:inherit}
+::selection{background:var(--accent);color:#161618}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.wrap{max-width:1240px;margin:0 auto;padding-left:clamp(20px,5vw,60px);padding-right:clamp(20px,5vw,60px)}
+
+/* preloader */
+.preloader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .7s ease,visibility .7s ease}
+.preloader.hide{opacity:0;visibility:hidden;pointer-events:none}
+.preloader-inner{display:flex;flex-direction:column;align-items:center;gap:16px}
+.preloader-text{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;color:var(--dim)}
+.preloader-bar{width:130px;height:1px;background:var(--line);overflow:hidden;position:relative}
+.preloader-fill{position:absolute;inset:0;background:var(--accent);animation:fillbar 1.15s ease-in-out infinite}
+@keyframes fillbar{0%{transform:translateX(-100%)}50%{transform:translateX(0)}100%{transform:translateX(100%)}}
+
+/* progress */
+.progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);width:0%;z-index:9998}
+
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:24px clamp(20px,5vw,60px);padding-top:calc(24px + env(safe-area-inset-top,0px));transition:.4s ease}
+nav.scrolled{padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:14px;background:rgba(16,16,18,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.logo-img{height:24px;width:24px;object-fit:contain;border-radius:4px}
+.logo-text{font-weight:600;font-size:16.5px;letter-spacing:-.01em}
+.nav-links{display:flex;gap:40px;list-style:none}
+.nav-links a{text-decoration:none;color:var(--dim);font-size:14.5px;position:relative;padding-bottom:3px;transition:color .25s}
+.nav-links a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--accent);transition:width .3s ease}
+.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;z-index:1001}
+.burger span{width:22px;height:1.5px;background:var(--text);transition:.3s ease;display:block}
+.burger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+.mobile-panel{position:fixed;top:0;right:-100%;width:76%;max-width:320px;height:100vh;height:100dvh;background:var(--bg2);z-index:950;padding:calc(110px + env(safe-area-inset-top,0px)) 34px 34px;display:flex;flex-direction:column;gap:30px;border-left:1px solid var(--line);transition:right .45s cubic-bezier(.2,.8,.2,1)}
+.mobile-panel.open{right:0}
+.mobile-panel a{text-decoration:none;color:var(--text);font-size:22px;font-weight:500;opacity:0;transform:translateX(14px);transition:opacity .4s ease,transform .4s ease}
+.mobile-panel.open a{opacity:1;transform:translateX(0)}
+.mobile-panel.open a:nth-child(1){transition-delay:.06s}
+.mobile-panel.open a:nth-child(2){transition-delay:.12s}
+.mobile-panel.open a:nth-child(3){transition-delay:.18s}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:940;opacity:0;visibility:hidden;transition:.35s}
+.backdrop.open{opacity:1;visibility:visible}
+@media(max-width:800px){.nav-links{display:none}.burger{display:flex}}
+
+/* hero */
+.hero{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;padding:140px 20px 80px;
+  --mx:50%;--my:38%;
+  background-image:
+    radial-gradient(circle at var(--mx) var(--my),rgba(192,138,78,.11),transparent 45%),
+    radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:100% 100%,30px 30px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 42%,#000 40%,transparent 92%);
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 42%,#000 40%,transparent 92%);
+}
+.crosshair{position:absolute;width:15px;height:15px;opacity:.55}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:var(--dim2)}
+.crosshair::before{width:100%;height:1px;top:50%}
+.crosshair::after{width:1px;height:100%;left:50%}
+.ch-tl{top:30px;left:30px}.ch-tr{top:30px;right:30px}.ch-bl{bottom:30px;left:30px}.ch-br{bottom:30px;right:30px}
+.hero-inner{position:relative;z-index:1;opacity:0;transform:translateY(18px);animation:heroIn 1s cubic-bezier(.2,.8,.2,1) .35s forwards}
+@keyframes heroIn{to{opacity:1;transform:translateY(0)}}
+.eyebrow{color:var(--accent);font-size:14px;font-weight:500;margin-bottom:20px}
+.hero h1{font-size:clamp(3.2rem,13vw,7.8rem);font-weight:700;line-height:.94;letter-spacing:-.02em;color:var(--text)}
+.hero .tagline{margin-top:24px;font-size:clamp(1.05rem,2.3vw,1.4rem);color:var(--dim);max-width:600px;margin-left:auto;margin-right:auto;font-weight:300}
+.hero-cta{display:flex;gap:16px;margin-top:44px;flex-wrap:wrap;justify-content:center}
+.btn{padding:15px 30px;border-radius:100px;font-size:14.5px;font-weight:500;text-decoration:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,background .3s,border-color .3s;display:inline-block}
+.btn-primary{background:var(--text);color:var(--bg)}
+.btn-primary:hover{box-shadow:0 10px 30px rgba(192,138,78,.35)}
+.btn-ghost{border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);background:var(--card)}
+.scroll-cue{position:absolute;bottom:38px;left:50%;transform:translateX(-50%);font-size:12.5px;color:var(--dim2);display:flex;flex-direction:column;align-items:center;gap:9px;animation:bob 2.2s ease-in-out infinite,cueIn 1s ease .9s backwards}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+@keyframes cueIn{from{opacity:0}to{opacity:1}}
+
+/* sections */
+.section{padding:130px 0}
+.section-head{max-width:600px;margin:0 auto 68px;text-align:center}
+.section-head .eyebrow{margin-bottom:14px}
+.section-head h2{font-size:clamp(2rem,5vw,3rem);font-weight:600;letter-spacing:-.01em}
+.section-head p{color:var(--dim);margin-top:16px;font-size:1.05rem}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* team */
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+@media(max-width:940px){.team-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.team-grid{grid-template-columns:1fr;max-width:340px;margin:0 auto}}
+.team-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:32px 24px;text-align:center;transition:transform .4s cubic-bezier(.2,.8,.2,1),border-color .4s,background .4s}
+.team-card:hover{transform:translateY(-8px);border-color:var(--accent);background:var(--card-h)}
+.avatar{width:92px;height:92px;border-radius:50%;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;color:#161618;position:relative;overflow:hidden;background:var(--line)}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;filter:grayscale(1);transition:filter .5s ease}
+.team-card:hover .avatar img{filter:grayscale(0)}
+.team-card h3{font-size:1.08rem;font-weight:600}
+.team-card .role{color:var(--dim);font-size:.86rem;margin-top:5px}
+.team-card .link{margin-top:18px;display:inline-flex;width:36px;height:36px;border:1px solid var(--line);border-radius:50%;align-items:center;justify-content:center;text-decoration:none;color:var(--text);font-size:14px;transition:.35s}
+.team-card .link:hover{background:var(--accent);border-color:var(--accent);color:#161618;transform:rotate(40deg)}
+
+/* ecosystem */
+.eco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.eco-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.eco-grid{grid-template-columns:1fr}}
+.eco-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:36px 30px;transition:transform .4s cubic-bezier(.2,.8,.2,1),border-color .4s;position:relative}
+.eco-card:hover{transform:translateY(-6px);border-color:var(--accent2)}
+.eco-tag{position:absolute;top:30px;right:28px;font-size:11px;color:var(--dim2)}
+.eco-icon{width:40px;height:40px;border:1px solid var(--line);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent);margin-bottom:22px;transition:background .35s ease,color .35s ease,border-color .35s ease}
+.eco-card:hover .eco-icon{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.eco-card h3{font-size:1.12rem;font-weight:600;margin-bottom:11px;padding-right:30px}
+.eco-card p{color:var(--dim);font-size:.93rem;line-height:1.65}
+
+/* footer */
+footer{padding:110px clamp(20px,5vw,60px) calc(46px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg2)}
+.footer-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:46px;max-width:1240px;margin:0 auto}
+.footer-brand .logo-text{font-size:19px}
+.footer-brand p{color:var(--dim);margin-top:14px;max-width:320px;font-size:.95rem}
+.status{display:flex;align-items:center;gap:9px;color:var(--dim);font-size:13px;margin-top:20px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--status);position:relative}
+.dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--status);animation:ping 2s infinite}
+@keyframes ping{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+.footer-info h4{font-size:.82rem;color:var(--dim2);font-weight:500;margin-bottom:14px}
+.footer-info p{color:var(--dim);font-size:.95rem;margin-top:9px;display:flex;align-items:center;gap:9px}
+.footer-bottom{max-width:1240px;margin:70px auto 0;padding-top:26px;border-top:1px solid var(--line);color:var(--dim2);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="preloader" id="preloader">
+  <div class="preloader-inner">
+    <span class="preloader-text">MAGELABS</span>
+    <div class="preloader-bar"><div class="preloader-fill"></div></div>
+  </div>
+</div>
+<div class="progress" id="progress"></div>
+
+<nav id="nav">
+  <a href="#top" class="logo">
+    <img src="logo.png" alt="" class="logo-img" onerror="this.style.display='none'">
+    <span class="logo-text">MageLabs</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#leadership">Leadership</a></li>
+    <li><a href="#services">Ecosystem</a></li>
+    <li><a href="#footer">Contact</a></li>
+  </ul>
+  <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="backdrop" id="backdrop"></div>
+<div class="mobile-panel" id="mobilePanel">
+  <a href="#leadership">Leadership</a>
+  <a href="#services">Ecosystem</a>
+  <a href="#footer">Contact</a>
+</div>
+
+<section class="hero" id="top">
+  <span class="crosshair ch-tl"></span><span class="crosshair ch-tr"></span>
+  <span class="crosshair ch-bl"></span><span class="crosshair ch-br"></span>
+  <div class="hero-inner">
+    <div class="eyebrow">Independent technology collective</div>
+    <h1>MageLabs</h1>
+    <p class="tagline">Bridging digital intelligence with the physical world</p>
+    <div class="hero-cta">
+      <a href="#services" class="btn btn-primary">Explore Ecosystem →</a>
+      <a href="#footer" class="btn btn-ghost">Contact</a>
+    </div>
+  </div>
+  <div class="scroll-cue">Scroll to explore<span>↓</span></div>
+</section>
+
+<section class="section" id="leadership">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">The Team</div>
+      <h2>Leadership</h2>
+      <p>A focused team building the foundations of tomorrow's technology.</p>
+    </div>
+    <div class="team-grid">
+      <div class="team-card reveal">
+        <div class="avatar"><img src="me.jpg" alt="Adwaith Hari" onerror="this.parentElement.textContent='AH'"></div>
+        <h3>Adwaith Hari</h3>
+        <div class="role">Founder &amp; CTO</div>
+        <a class="link" href="https://www.instagram.com/solidbranch355" target="_blank" rel="noopener">↗</a>
+      </div>
+      <div class="team-card reveal">
+        <div class="avatar"><img src="sus.png" alt="Susanth CP" onerror="this.parentElement.textContent='SC'"></div>
+        <h3>Susanth CP</h3>
+        <div class="role">COO &amp; CTO</div>
+        <a class="link" href="https://www.instagram.com/endgamewilham" target="_blank" rel="noopener">↗</a>
+      </div>
+      <div class="team-card reveal">
+        <div class="avatar"><img src="assets/chetas.jpg" alt="Chetas" onerror="this.parentElement.textContent='C'"></div>
+        <h3>Chetas</h3>
+        <div class="role">CEO</div>
+        <a class="link" href="#top">↗</a>
+      </div>
+      <div class="team-card reveal">
+        <div class="avatar"><img src="heropic.jpeg" alt="Hero.X" onerror="this.parentElement.textContent='HX'"></div>
+        <h3>Hero.X</h3>
+        <div class="role">CTO</div>
+        <a class="link" href="#top">↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">What We Build</div>
+      <h2>Ecosystem Roadmap</h2>
+      <p>From silicon to healthcare, we work across the full stack of human progress.</p>
+    </div>
+    <div class="eco-grid">
+      <div class="eco-card reveal">
+        <span class="eco-tag">01/06</span>
+        <span class="eco-icon">◈</span>
+        <h3>Silicon &amp; Hardware Architectures</h3>
+        <p>Custom silicon chip design, proprietary devices, smartphones, computing systems and embedded hardware integrations.</p>
+      </div>
+      <div class="eco-card reveal">
+        <span class="eco-tag">02/06</span>
+        <span class="eco-icon">◎</span>
+        <h3>AI, Robotics &amp; Autonomous Systems</h3>
+        <p>AI vehicles, autonomous ground and aerial platforms, edge AI systems and foundational AGI research frameworks.</p>
+      </div>
+      <div class="eco-card reveal">
+        <span class="eco-tag">03/06</span>
+        <span class="eco-icon">▦</span>
+        <h3>Operating Systems &amp; Software</h3>
+        <p>Proprietary OS platforms, unified cross-device ecosystems, high-performance gaming optimizations and cloud infrastructure.</p>
+      </div>
+      <div class="eco-card reveal">
+        <span class="eco-tag">04/06</span>
+        <span class="eco-icon">✦</span>
+        <h3>Aerospace &amp; Defense</h3>
+        <p>Rocketry, satellites, tactical field solutions, autonomous sensor networks and industrial deployments.</p>
+      </div>
+      <div class="eco-card reveal">
+        <span class="eco-tag">05/06</span>
+        <span class="eco-icon">⌁</span>
+        <h3>Educational &amp; Research</h3>
+        <p>Pioneering pedagogical architectures, interactive STEM research platforms and next-generation learning frameworks.</p>
+      </div>
+      <div class="eco-card reveal">
+        <span class="eco-tag">06/06</span>
+        <span class="eco-icon">♡</span>
+        <h3>Advanced Healthcare</h3>
+        <p>Next-generation hospital infrastructure, AI diagnostic engines, smart medical hardware and integrated clinical care.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="footer-top">
+    <div class="footer-brand reveal">
+      <a href="#top" class="logo">
+        <img src="logo.png" alt="" class="logo-img" onerror="this.style.display='none'">
+        <span class="logo-text">MageLabs</span>
+      </a>
+      <p>Bridging digital intelligence with the physical world.</p>
+      <div class="status"><span class="dot"></span> Systems online</div>
+    </div>
+    <div class="footer-info reveal">
+      <h4>Location &amp; Info</h4>
+      <p>⌖ Thiruvananthapuram, Kerala</p>
+      <p>✉ magelabs2026@gmail.com</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 MageLabs</span>
+    <span>Independent technology collective</span>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('load',()=>{
+  setTimeout(()=>document.getElementById('preloader').classList.add('hide'),350);
+});
+
+const nav=document.getElementById('nav'), bar=document.getElementById('progress');
+const sections=[...document.querySelectorAll('section[id],footer[id]')];
+const navLinks=document.querySelectorAll('.nav-links a');
+function updateActive(){
+  let current=sections[0].id;
+  const y=window.scrollY+140;
+  sections.forEach(s=>{ if(y>=s.offsetTop) current=s.id; });
+  navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+}
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY;
+  nav.classList.toggle('scrolled',s>30);
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  bar.style.width=(h>0?(s/h*100):0)+'%';
+  updateActive();
+},{passive:true});
+updateActive();
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      e.target.style.transitionDelay=(i%4*70)+'ms';
+      e.target.classList.add('in');
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+const burger=document.getElementById('burger'), panel=document.getElementById('mobilePanel'), backdrop=document.getElementById('backdrop');
+function toggleMenu(){burger.classList.toggle('open');panel.classList.toggle('open');backdrop.classList.toggle('open');}
+burger.addEventListener('click',toggleMenu);
+backdrop.addEventListener('click',toggleMenu);
+panel.querySelectorAll('a').forEach(a=>a.addEventListener('click',toggleMenu));
+
+document.querySelectorAll('.btn').forEach(btn=>{
+  btn.addEventListener('mousemove',e=>{
+    const r=btn.getBoundingClientRect();
+    const x=e.clientX-r.left-r.width/2, y=e.clientY-r.top-r.height/2;
+    btn.style.transform=`translate(${x*.12}px,${y*.35}px) scale(1.03)`;
+  });
+  btn.addEventListener('mouseleave',()=>btn.style.transform='');
+});
+
+const heroEl=document.getElementById('top');
+heroEl.addEventListener('mousemove',e=>{
+  const r=heroEl.getBoundingClientRect();
+  heroEl.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+  heroEl.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+});
+</script>
+</body>
+</html>
