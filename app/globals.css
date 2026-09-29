@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #090a0d;
+    --foreground: #f3f4f6;
+    --card: #111317;
+    --card-foreground: #f3f4f6;
+    --popover: #111317;
+    --popover-foreground: #f3f4f6;
+    --primary: #f3f4f6;
+    --primary-foreground: #090a0d;
+    --secondary: #1f232b;
+    --secondary-foreground: #f3f4f6;
+    --muted: #1f232b;
+    --muted-foreground: #9ca3af;
+    --accent: #c08a4e;
+    --accent-foreground: #090a0d;
+    --destructive: #ef4444;
+    --destructive-foreground: #f3f4f6;
+    --border: #232731;
+    --input: #1a1e26;
+    --ring: #c08a4e;
+    --radius: 0.5rem;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0e1013;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272a33;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3f4d;
+}
+
+/* Laboratory technical grid pattern */
+.bg-lab-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 30%, rgba(192, 138, 78, 0.08), transparent 70%);
+}
+
+/* Canvas wrapper */
+.r3f-canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
