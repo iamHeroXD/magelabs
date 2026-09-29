@@ -78,7 +78,7 @@ export function ChemistryScene({
   return (
     <div className="absolute inset-0 w-full h-full bg-[#070709]">
       <Canvas
-        camera={{ position: [0, 1.48, 0.96], fov: 52 }}
+        camera={{ position: [0, 1.48, 1.38], fov: 58 }}
         shadows
         gl={{
           antialias: true,
@@ -161,13 +161,13 @@ export function ChemistryScene({
           />
 
           {/* Precision Analytical Balance */}
-          <AnalyticalBalance3D />
+          <AnalyticalBalance3D position={[0.68, 0.005, -0.08]} rotation={[0, -0.15, 0]} />
 
           {/* Interactive Magnetic Hotplate Stirrer */}
-          <HotplateStirrer3D position={[-0.95, 0.005, -0.15]} />
+          <HotplateStirrer3D position={[-0.82, 0.005, -0.08]} rotation={[0, 0.25, 0]} />
 
           {/* Interactive Benchtop Centrifuge */}
-          <Centrifuge3D position={[1.45, 0.005, -0.15]} />
+          <Centrifuge3D position={[1.15, 0.005, -0.08]} rotation={[0, -0.28, 0]} />
 
           {/* Pickable / Pourable Vessels on Island Bench */}
           <InteractiveVessels

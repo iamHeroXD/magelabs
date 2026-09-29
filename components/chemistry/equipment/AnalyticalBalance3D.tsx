@@ -6,16 +6,20 @@ import * as THREE from "three";
 interface BalanceProps {
   currentWeightG?: number;
   isDraftShieldClosed?: boolean;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
 }
 
 export function AnalyticalBalance3D({
   currentWeightG = 0.0,
   isDraftShieldClosed = true,
+  position = [0.68, 0.005, -0.08],
+  rotation = [0, -0.15, 0],
 }: BalanceProps) {
   const formattedWeight = currentWeightG.toFixed(4);
 
   return (
-    <group position={[0.9, 0.005, -0.15]}>
+    <group position={position} rotation={rotation}>
       {/* 1. Base Housing */}
       <mesh position={[0, 0.035, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.22, 0.07, 0.28]} />

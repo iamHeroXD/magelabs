@@ -204,42 +204,44 @@ export function ChemistryHUD({
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          CENTER: RETICLE & CONTEXTUAL RAYCAST TARGET
+          TOP HELD VESSEL NOTIFICATION (Non-obstructive)
          ───────────────────────────────────────────────────────────── */}
-      <div className="my-auto flex flex-col items-center justify-center space-y-3">
+      {heldVessel && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2 bg-zinc-950/90 border border-sky-500/40 rounded-full backdrop-blur-md shadow-2xl pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-200">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-mono text-xs text-white">
+            HOLDING: <strong className="text-sky-300">{heldVessel.name}</strong> ({heldVessel.currentVolumeMl.toFixed(0)} mL, pH {heldVessel.pH.toFixed(1)})
+          </span>
+          <span className="text-[11px] font-mono text-zinc-400 hidden sm:inline">
+            · [CLICK TARGET BEAKER OR FLASK TO POUR]
+          </span>
+          <button
+            onClick={onDropVessel}
+            className="ml-2 px-2.5 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-mono rounded-full flex items-center gap-1 transition-colors"
+          >
+            <ArrowDownCircle className="h-3 w-3" />
+            <span>PLACE BACK [R]</span>
+          </button>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          CENTER: CLEAN RETICLE & CONTEXTUAL RAYCAST TARGET
+         ───────────────────────────────────────────────────────────── */}
+      <div className="my-auto flex flex-col items-center justify-center space-y-2 pointer-events-none">
         {/* Reticle Dot */}
         <div
-          className={`h-2.5 w-2.5 rounded-full transition-all duration-200 border ${
-            hoverLabel || heldVessel
-              ? "bg-white scale-150 border-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
-              : "bg-white/40 border-white/60"
+          className={`h-2 w-2 rounded-full transition-all duration-150 border ${
+            hoverLabel
+              ? "bg-sky-400 scale-125 border-sky-200 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+              : "bg-white/50 border-white/70"
           }`}
         />
 
         {/* Hover Prompt */}
-        {hoverLabel && !heldVessel && (
-          <div className="px-3 py-1 rounded bg-black/80 border border-zinc-700 text-white font-mono text-xs tracking-wider backdrop-blur-md animate-fade-in">
+        {hoverLabel && (
+          <div className="px-3 py-1 rounded bg-black/85 border border-zinc-700 text-white font-mono text-xs tracking-wider backdrop-blur-md shadow-lg animate-fade-in">
             {hoverLabel}
-          </div>
-        )}
-
-        {/* Held Vessel Status Banner */}
-        {heldVessel && (
-          <div className="flex items-center gap-3 px-4 py-2 bg-zinc-950/95 border border-zinc-700 rounded-md backdrop-blur-md shadow-2xl pointer-events-auto">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-mono text-xs text-white">
-              HOLDING: <strong className="text-sky-300">{heldVessel.name}</strong> ({heldVessel.currentVolumeMl.toFixed(0)} mL, pH {heldVessel.pH.toFixed(1)})
-            </span>
-            <span className="text-[11px] font-mono text-zinc-400">
-              · [CLICK TARGET BEAKER TO POUR]
-            </span>
-            <button
-              onClick={onDropVessel}
-              className="ml-2 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-mono rounded flex items-center gap-1"
-            >
-              <ArrowDownCircle className="h-3 w-3" />
-              <span>PLACE BACK [R]</span>
-            </button>
           </div>
         )}
       </div>

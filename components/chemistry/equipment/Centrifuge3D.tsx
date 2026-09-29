@@ -8,9 +8,13 @@ import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
 interface CentrifugeProps {
   position?: [number, number, number];
+  rotation?: [number, number, number];
 }
 
-export function Centrifuge3D({ position = [1.5, 0.005, -0.2] }: CentrifugeProps) {
+export function Centrifuge3D({
+  position = [1.15, 0.005, -0.08],
+  rotation = [0, -0.28, 0],
+}: CentrifugeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [speedRpm, setSpeedRpm] = useState(4000);
@@ -53,7 +57,7 @@ export function Centrifuge3D({ position = [1.5, 0.005, -0.2] }: CentrifugeProps)
   });
 
   return (
-    <group position={position}>
+    <group position={position} rotation={rotation}>
       {/* 1. Main Round Centrifuge Body */}
       <mesh position={[0, 0.08, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.16, 0.18, 0.16, 32]} />

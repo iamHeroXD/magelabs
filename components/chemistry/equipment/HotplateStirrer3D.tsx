@@ -7,9 +7,13 @@ import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
 interface HotplateProps {
   position?: [number, number, number];
+  rotation?: [number, number, number];
 }
 
-export function HotplateStirrer3D({ position = [-1.4, 0.005, -0.2] }: HotplateProps) {
+export function HotplateStirrer3D({
+  position = [-0.82, 0.005, -0.08],
+  rotation = [0, 0.25, 0],
+}: HotplateProps) {
   const [isOn, setIsOn] = useState(false);
   const [targetTemp, setTargetTemp] = useState(25);
   const [stirRpm, setStirRpm] = useState(0);
@@ -43,7 +47,7 @@ export function HotplateStirrer3D({ position = [-1.4, 0.005, -0.2] }: HotplatePr
   const plateGlowColor = isHeating ? (targetTemp > 150 ? "#ea580c" : "#f59e0b") : "#ffffff";
 
   return (
-    <group position={position}>
+    <group position={position} rotation={rotation}>
       {/* 1. Main Die-Cast Metal Instrument Housing */}
       <mesh position={[0, 0.045, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.26, 0.09, 0.32]} />

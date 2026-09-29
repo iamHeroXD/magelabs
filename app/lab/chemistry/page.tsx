@@ -41,7 +41,7 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionId: "cuso4",
     solutionColor: "#0284c7", // Vivid azure blue
     pH: 4.2,
-    position: [-0.6, 0.005, 0.35],
+    position: [-0.52, 0.005, 0.22],
   },
   {
     id: "beaker-acid",
@@ -52,7 +52,7 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionId: "hcl",
     solutionColor: "#f8fafc", // Clear
     pH: 1.0,
-    position: [-0.36, 0.005, 0.35],
+    position: [-0.32, 0.005, 0.24],
   },
   {
     id: "beaker-universal",
@@ -64,7 +64,7 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionColor: "#16a34a", // Green
     pH: 7.0,
     indicator: "universal",
-    position: [-0.15, 0.005, 0.35],
+    position: [-0.14, 0.005, 0.26],
   },
   {
     id: "beaker-base",
@@ -75,7 +75,7 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionId: "naoh",
     solutionColor: "#f8fafc",
     pH: 13.0,
-    position: [0.36, 0.005, 0.35],
+    position: [0.32, 0.005, 0.24],
   },
   {
     id: "cylinder-water",
@@ -86,7 +86,7 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionId: "water",
     solutionColor: "#f8fafc",
     pH: 7.0,
-    position: [0.62, 0.005, 0.35],
+    position: [0.52, 0.005, 0.22],
   },
   {
     id: "hotplate-beaker",
@@ -97,7 +97,7 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionId: "water",
     solutionColor: "#f8fafc",
     pH: 7.0,
-    position: [-0.95, 0.105, -0.19],
+    position: [-0.82, 0.105, -0.12],
   },
 ];
 

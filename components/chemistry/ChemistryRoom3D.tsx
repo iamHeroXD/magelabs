@@ -103,18 +103,18 @@ export function ChemistryRoom3D({
           <meshStandardMaterial color="#111317" roughness={0.32} metalness={0.12} />
         </mesh>
 
-        {/* Anti-Static ESD Blue Silicone Workstation Mat */}
-        <mesh position={[0, 0.945, 0.12]} receiveShadow>
-          <boxGeometry args={[2.5, 0.004, 0.85]} />
+        {/* Anti-Static ESD Blue Silicone Workstation Mat (Full Equipment Coverage) */}
+        <mesh position={[0, 0.945, 0.08]} receiveShadow>
+          <boxGeometry args={[3.2, 0.004, 0.98]} />
           <meshStandardMaterial
-            color="#1d4ed8"
-            roughness={0.65}
-            metalness={0.05}
+            color="#1e40af"
+            roughness={0.6}
+            metalness={0.08}
           />
         </mesh>
-        <mesh position={[0, 0.948, 0.12]}>
-          <planeGeometry args={[2.46, 0.81]} />
-          <meshBasicMaterial color="#2563eb" transparent opacity={0.35} />
+        <mesh position={[0, 0.948, 0.08]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[3.16, 0.94]} />
+          <meshBasicMaterial color="#3b82f6" transparent opacity={0.25} />
         </mesh>
 
         {/* White Powder-Coated Under-Bench Cabinetry Base */}
@@ -259,76 +259,109 @@ export function ChemistryRoom3D({
       </group>
 
       {/* ─────────────────────────────────────────────────────────────
-          5. BACK WALL: WINDOWS, DUAL LIGHT SWITCHES & SAFETY STATION
+          5. BACK WALL: ARCHITECTURAL CAMPUS WINDOWS & SAFETY STATION
          ───────────────────────────────────────────────────────────── */}
-      {/* Tall Divided Campus Windows with Realistic Outdoor Sky & Campus Park */}
-      <group position={[0, 2.1, -6.96]}>
-        {/* Exterior Sky Daylight Background */}
-        <mesh position={[0, 0.15, -0.15]}>
-          <planeGeometry args={[6.2, 3.0]} />
-          <meshBasicMaterial color="#7dd3fc" />
+      {/* Lower Wall Wainscot & Aluminum Trim */}
+      <mesh position={[0, 0.5, -6.99]}>
+        <planeGeometry args={[13.5, 1.0]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.4} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, 1.01, -6.98]}>
+        <boxGeometry args={[13.4, 0.03, 0.02]} />
+        <meshStandardMaterial color="#94a3b8" roughness={0.2} metalness={0.9} />
+      </mesh>
+
+      {/* Tall Divided Campus Windows with Panoramic Campus Vista */}
+      <group position={[0, 2.2, -6.96]}>
+        {/* Sky Daylight Atmosphere Gradient */}
+        <mesh position={[0, 0.2, -0.22]}>
+          <planeGeometry args={[6.8, 2.8]} />
+          <meshBasicMaterial color="#bae6fd" />
         </mesh>
 
-        {/* Distant Campus Lawn / Park Canopy */}
-        <mesh position={[0, -0.7, -0.1]}>
-          <planeGeometry args={[6.2, 1.2]} />
-          <meshBasicMaterial color="#15803d" />
+        {/* Distant Modern Research Pavilion Buildings Silhouettes */}
+        <group position={[0, -0.3, -0.16]}>
+          {/* Main campus science center wing */}
+          <mesh position={[-1.6, 0.1, 0]}>
+            <planeGeometry args={[1.8, 1.1]} />
+            <meshBasicMaterial color="#64748b" />
+          </mesh>
+          <mesh position={[-1.6, 0.1, 0.001]}>
+            <planeGeometry args={[1.7, 0.9]} />
+            <meshBasicMaterial color="#475569" />
+          </mesh>
+
+          {/* Central glazed tower */}
+          <mesh position={[0.2, 0.35, 0]}>
+            <planeGeometry args={[1.2, 1.6]} />
+            <meshBasicMaterial color="#64748b" />
+          </mesh>
+          <mesh position={[0.2, 0.35, 0.001]}>
+            <planeGeometry args={[1.1, 1.4]} />
+            <meshBasicMaterial color="#334155" />
+          </mesh>
+
+          {/* Right laboratory wing */}
+          <mesh position={[1.8, 0.05, 0]}>
+            <planeGeometry args={[1.6, 1.0]} />
+            <meshBasicMaterial color="#64748b" />
+          </mesh>
+
+          {/* Manicured Campus Green Lawn Canopy */}
+          <mesh position={[0, -0.65, 0.02]}>
+            <planeGeometry args={[6.8, 0.7]} />
+            <meshBasicMaterial color="#15803d" />
+          </mesh>
+        </group>
+
+        {/* Heavy Black Architectural Window Frame */}
+        <mesh>
+          <boxGeometry args={[5.6, 2.5, 0.08]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.25} metalness={0.85} />
         </mesh>
 
-        {/* Exterior Trees / Foliage Silhouettes */}
-        {[-2.0, -0.9, 0.3, 1.4, 2.2].map((tx, ti) => (
-          <group key={ti} position={[tx, -0.3, -0.08]}>
-            <mesh>
-              <sphereGeometry args={[0.42 + (ti % 2) * 0.12, 16, 16]} />
-              <meshBasicMaterial color={ti % 2 === 0 ? "#166534" : "#14532d"} />
-            </mesh>
-            <mesh position={[0, -0.38, 0]}>
-              <cylinderGeometry args={[0.035, 0.05, 0.35, 8]} />
-              <meshBasicMaterial color="#451a03" />
-            </mesh>
-          </group>
+        {/* Vertical Mullion Bars */}
+        {[-1.8, -0.6, 0.6, 1.8].map((mx, mi) => (
+          <mesh key={mi} position={[mx, 0, 0.03]}>
+            <boxGeometry args={[0.045, 2.4, 0.06]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.25} metalness={0.85} />
+          </mesh>
         ))}
 
-        {/* Outer Heavy Window Frame */}
-        <mesh>
-          <boxGeometry args={[5.2, 2.3, 0.06]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
+        {/* Horizontal Transom Beam */}
+        <mesh position={[0, 0.45, 0.03]}>
+          <boxGeometry args={[5.5, 0.05, 0.06]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.25} metalness={0.85} />
         </mesh>
 
-        {/* Divided Window Mullion Bars (2 Vertical, 1 Horizontal Transom) */}
-        <mesh position={[-1.3, 0, 0.02]}>
-          <boxGeometry args={[0.045, 2.2, 0.05]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
-        </mesh>
-        <mesh position={[1.3, 0, 0.02]}>
-          <boxGeometry args={[0.045, 2.2, 0.05]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
-        </mesh>
-        <mesh position={[0, 0.35, 0.02]}>
-          <boxGeometry args={[5.1, 0.045, 0.05]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
-        </mesh>
+        {/* Architectural Exterior Sun Louver Slats */}
+        {[-0.6, -0.2, 0.2, 0.7].map((ly, li) => (
+          <mesh key={li} position={[0, ly, -0.05]} rotation={[0.3, 0, 0]}>
+            <boxGeometry args={[5.4, 0.025, 0.12]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
+          </mesh>
+        ))}
 
-        {/* Tempered Window Glass Panes with Realistic Transmission */}
-        <mesh position={[0, 0, 0.01]}>
-          <planeGeometry args={[5.0, 2.1]} />
+        {/* Multi-Pane Insulated Tempered Glass with Realistic Refraction & Sunlight */}
+        <mesh position={[0, 0, 0.015]}>
+          <planeGeometry args={[5.4, 2.3]} />
           <meshPhysicalMaterial
-            color="#e0f2fe"
+            color="#f0f9ff"
             transparent
-            opacity={0.35}
-            roughness={0.08}
-            transmission={0.85}
+            opacity={0.3}
+            roughness={0.06}
+            transmission={0.92}
             ior={1.52}
           />
         </mesh>
 
-        {/* Sunlight Beaming into Lab */}
+        {/* Warm Sunlight Beaming Inward Across the Bench */}
         <directionalLight
-          position={[0, 4.5, -4]}
-          intensity={1.8}
+          position={[0, 5.0, -3.5]}
+          intensity={2.2}
           color="#fef3c7"
           castShadow
-          target-position={[0, 0.9, 0]}
+          target-position={[0, 0.94, 0]}
         />
       </group>
 

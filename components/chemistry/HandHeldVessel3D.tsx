@@ -17,8 +17,8 @@ export function HandHeldVessel3D({ heldVessel, isPouring }: HandHeldProps) {
   useFrame((state, delta) => {
     if (!groupRef.current || !heldVessel) return;
 
-    // Follow camera rigidly in front of player
-    const offset = new THREE.Vector3(0.24, -0.22, -0.48);
+    // Follow camera rigidly in front of player (aligned with right hand grip)
+    const offset = new THREE.Vector3(0.18, -0.08, -0.32);
     offset.applyQuaternion(camera.quaternion);
     const targetPos = camera.position.clone().add(offset);
     groupRef.current.position.copy(targetPos);
@@ -49,15 +49,18 @@ export function HandHeldVessel3D({ heldVessel, isPouring }: HandHeldProps) {
 
   if (!heldVessel) return null;
 
+  const fillFraction = Math.min(1, Math.max(0.08, heldVessel.currentVolumeMl / heldVessel.capacityMl));
+  const liquidHeight = fillFraction * 0.07;
+
   return (
     <group ref={groupRef}>
       {/* Hand-Held Glass Beaker / Flask Body */}
       <mesh castShadow>
-        <cylinderGeometry args={[0.045, 0.045, 0.1, 32, 1, true]} />
+        <cylinderGeometry args={[0.038, 0.038, 0.09, 32, 1, true]} />
         <meshPhysicalMaterial
           color="#ffffff"
           transparent
-          opacity={0.4}
+          opacity={0.42}
           roughness={0.06}
           transmission={0.92}
           ior={1.52}
@@ -65,34 +68,65 @@ export function HandHeldVessel3D({ heldVessel, isPouring }: HandHeldProps) {
         />
       </mesh>
       {/* Base */}
-      <mesh position={[0, -0.05, 0]}>
-        <cylinderGeometry args={[0.045, 0.045, 0.006, 32]} />
+      <mesh position={[0, -0.045, 0]}>
+        <cylinderGeometry args={[0.038, 0.038, 0.005, 32]} />
         <meshPhysicalMaterial color="#ffffff" transparent opacity={0.5} roughness={0.05} />
       </mesh>
+      {/* Flanged Lip */}
+      <mesh position={[0, 0.045, 0]}>
+        <torusGeometry args={[0.039, 0.002, 12, 32]} />
+        <meshPhysicalMaterial color="#ffffff" transparent opacity={0.55} roughness={0.04} />
+      </mesh>
+
       {/* Liquid inside */}
       {heldVessel.currentVolumeMl > 0 && (
-        <mesh position={[0, -0.048 + 0.04, 0]}>
-          <cylinderGeometry args={[0.042, 0.042, 0.075, 24]} />
-          <meshPhysicalMaterial
-            color={heldVessel.solutionColor}
-            transparent
-            opacity={0.85}
-            roughness={0.1}
-            transmission={0.65}
-          />
-        </mesh>
+        <group position={[0, -0.045 + liquidHeight / 2, 0]}>
+          <mesh>
+            <cylinderGeometry args={[0.036, 0.036, liquidHeight, 24]} />
+            <meshPhysicalMaterial
+              color={heldVessel.solutionColor}
+              transparent
+              opacity={0.85}
+              roughness={0.1}
+              transmission={0.65}
+              ior={1.34}
+            />
+          </mesh>
+          {/* Surface Meniscus */}
+          <mesh position={[0, liquidHeight / 2, 0]}>
+            <cylinderGeometry args={[0.036, 0.036, 0.001, 24]} />
+            <meshPhysicalMaterial
+              color={heldVessel.solutionColor}
+              transparent
+              opacity={0.9}
+              roughness={0.05}
+            />
+          </mesh>
+        </group>
       )}
+
       {/* Pouring stream droplet when pouring */}
       {isPouring && (
-        <mesh position={[-0.05, -0.08, 0]}>
-          <cylinderGeometry args={[0.003, 0.002, 0.16, 12]} />
-          <meshPhysicalMaterial
-            color={heldVessel.solutionColor}
-            transparent
-            opacity={0.9}
-            roughness={0.05}
-          />
-        </mesh>
+        <group position={[-0.04, -0.05, 0]}>
+          <mesh position={[0, -0.06, 0]}>
+            <cylinderGeometry args={[0.0025, 0.0015, 0.14, 12]} />
+            <meshPhysicalMaterial
+              color={heldVessel.solutionColor}
+              transparent
+              opacity={0.92}
+              roughness={0.05}
+            />
+          </mesh>
+          <mesh position={[0, -0.14, 0]}>
+            <sphereGeometry args={[0.003, 12, 12]} />
+            <meshPhysicalMaterial
+              color={heldVessel.solutionColor}
+              transparent
+              opacity={0.95}
+              roughness={0.05}
+            />
+          </mesh>
+        </group>
       )}
     </group>
   );

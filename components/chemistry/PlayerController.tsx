@@ -38,14 +38,14 @@ export function PlayerController({
   const euler = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
   const isLocked = useRef(false);
   const footstepAccumulator = useRef(0);
-  const targetFov = useRef(52);
+  const targetFov = useRef(58);
 
-  // Initial camera position (close ergonomic standing eye height at chemistry bench)
+  // Initial camera position (panoramic ergonomic standing position with full tabletop visibility)
   useEffect(() => {
     if (!isInspecting) {
-      camera.position.set(0, 1.48, 0.96);
-      camera.rotation.set(-0.28, 0, 0);
-      euler.current.set(-0.28, 0, 0, "YXZ");
+      camera.position.set(0, 1.48, 1.38);
+      camera.rotation.set(-0.30, 0, 0);
+      euler.current.set(-0.30, 0, 0, "YXZ");
     }
   }, [camera, isInspecting]);
 
@@ -105,8 +105,8 @@ export function PlayerController({
           onInteract();
           break;
         case "KeyZ":
-          // Quick toggle between macro inspection zoom (30°) and normal overview (52°)
-          targetFov.current = targetFov.current <= 36 ? 52 : 30;
+          // Quick toggle between macro inspection zoom (32°) and normal overview (58°)
+          targetFov.current = targetFov.current <= 38 ? 58 : 32;
           break;
       }
     };
@@ -219,10 +219,10 @@ export function PlayerController({
       const distBack = Math.abs(resolvedZ - (-0.92));
       const minDist = Math.min(distLeft, distRight, distFront, distBack);
 
-      if (minDist === distFront) resolvedZ = 0.93;
-      else if (minDist === distBack) resolvedZ = -0.93;
-      else if (minDist === distLeft) resolvedX = -2.36;
-      else if (minDist === distRight) resolvedX = 2.36;
+      if (minDist === distFront) resolvedZ = 1.08;
+      else if (minDist === distBack) resolvedZ = -1.08;
+      else if (minDist === distLeft) resolvedX = -2.42;
+      else if (minDist === distRight) resolvedX = 2.42;
     }
 
     // 3. Left Wall Counter (X < -4.6, Z in [-3.5, 3.5])
@@ -252,27 +252,27 @@ export function PlayerController({
     const playerPos = camera.position;
     const distToTitration = playerPos.distanceTo(new THREE.Vector3(0, 0.94, 0));
     const distToReagents = playerPos.distanceTo(new THREE.Vector3(-0.28, 0.94, 0.08));
-    const distToHotplate = playerPos.distanceTo(new THREE.Vector3(-0.95, 0.94, -0.15));
-    const distToCentrifuge = playerPos.distanceTo(new THREE.Vector3(1.45, 0.94, -0.15));
-    const distToBalance = playerPos.distanceTo(new THREE.Vector3(0.9, 0.94, -0.15));
-    const distToRobot = playerPos.distanceTo(new THREE.Vector3(0, 0.6, 1.4));
+    const distToHotplate = playerPos.distanceTo(new THREE.Vector3(-0.82, 0.94, -0.08));
+    const distToCentrifuge = playerPos.distanceTo(new THREE.Vector3(1.15, 0.94, -0.08));
+    const distToBalance = playerPos.distanceTo(new THREE.Vector3(0.68, 0.94, -0.08));
+    const distToRobot = playerPos.distanceTo(new THREE.Vector3(0.45, 0.9, -1.25));
     const distToWallSwitches = playerPos.distanceTo(new THREE.Vector3(-4.8, 1.4, -6.95));
 
     // Check line of sight
     const forwardRay = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
 
-    if (distToTitration < 2.5 && forwardRay.z < 0 && Math.abs(forwardRay.x) < 0.4) {
+    if (distToTitration < 2.5 && forwardRay.z < 0 && Math.abs(forwardRay.x) < 0.3) {
       onHoverObject("TITRATION BENCH [ E: Inspect / Turn Stopcock ]");
-    } else if (distToHotplate < 2.5 && forwardRay.x < -0.15) {
+    } else if (distToHotplate < 2.6 && forwardRay.x < -0.2) {
       onHoverObject("HOTPLATE STIRRER [ Click to Heat / Stir Beaker ]");
-    } else if (distToCentrifuge < 2.5 && forwardRay.x > 0.15) {
+    } else if (distToCentrifuge < 2.6 && forwardRay.x > 0.3) {
       onHoverObject("BENCHTOP CENTRIFUGE [ Click Lid to Open / Spin ]");
-    } else if (distToReagents < 2.2 && forwardRay.x < 0) {
-      onHoverObject("PHENOLPHTHALEIN DROPPER [ Click to Add 3 Drops ]");
-    } else if (distToBalance < 2.2 && forwardRay.x > 0) {
+    } else if (distToBalance < 2.4 && forwardRay.x > 0.1) {
       onHoverObject("ANALYTICAL BALANCE [ Tare Zero ]");
-    } else if (distToRobot < 2.6 && forwardRay.z > 0.1) {
-      onHoverObject("AURA AUTONOMOUS ROBOT [ Click or Press R for Protocols ]");
+    } else if (distToReagents < 2.2 && forwardRay.x < -0.05) {
+      onHoverObject("PHENOLPHTHALEIN DROPPER [ Click to Add 3 Drops ]");
+    } else if (distToRobot < 3.2 && forwardRay.z < -0.4 && forwardRay.x > -0.2) {
+      onHoverObject("DR. AURA // AI LAB FELLOW [ Click or Press R for Protocols ]");
     } else if (distToWallSwitches < 2.5 && forwardRay.z < -0.4) {
       onHoverObject("WALL SWITCHES [ Click to Toggle Lights ]");
     } else {
