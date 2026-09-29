@@ -31,6 +31,77 @@ export async function POST(req: NextRequest) {
     const cleanQuery = query.trim().toLowerCase();
 
     // 1. Keyword heuristics first for deterministic reliability
+    // Matches Series & Parallel
+    if (
+      cleanQuery.includes('series') ||
+      cleanQuery.includes('parallel') ||
+      cleanQuery.includes('equivalent resistance') ||
+      cleanQuery.includes('voltage divider') ||
+      cleanQuery.includes('current divider')
+    ) {
+      const exp = EXPERIMENT_CATALOG.find(e => e.id === 'series-parallel')!;
+      return NextResponse.json({
+        matched: true,
+        experiment: {
+          id: exp.id,
+          title: exp.title,
+          subject: exp.subject,
+          description: exp.description,
+          url: `/labs/${exp.id}`
+        },
+        explanation: `Matched "${query}" to ${exp.title}. You will analyze equivalent resistance and network laws.`,
+        confidence: 0.98
+      } satisfies MatchResponse);
+    }
+
+    // Matches Internal Resistance of a Cell
+    if (
+      cleanQuery.includes('internal resistance') ||
+      cleanQuery.includes('emf') ||
+      cleanQuery.includes('electromotive') ||
+      cleanQuery.includes('cell resistance') ||
+      cleanQuery.includes('load line')
+    ) {
+      const exp = EXPERIMENT_CATALOG.find(e => e.id === 'internal-resistance')!;
+      return NextResponse.json({
+        matched: true,
+        experiment: {
+          id: exp.id,
+          title: exp.title,
+          subject: exp.subject,
+          description: exp.description,
+          url: `/labs/${exp.id}`
+        },
+        explanation: `Matched "${query}" to ${exp.title}. You will determine battery EMF and internal drop.`,
+        confidence: 0.98
+      } satisfies MatchResponse);
+    }
+
+    // Matches RC Transient Circuit
+    if (
+      cleanQuery.includes('rc') ||
+      cleanQuery.includes('capacitor') ||
+      cleanQuery.includes('capacitance') ||
+      cleanQuery.includes('time constant') ||
+      cleanQuery.includes('tau') ||
+      cleanQuery.includes('charging') ||
+      cleanQuery.includes('discharging')
+    ) {
+      const exp = EXPERIMENT_CATALOG.find(e => e.id === 'rc-transient')!;
+      return NextResponse.json({
+        matched: true,
+        experiment: {
+          id: exp.id,
+          title: exp.title,
+          subject: exp.subject,
+          description: exp.description,
+          url: `/labs/${exp.id}`
+        },
+        explanation: `Matched "${query}" to ${exp.title}. You will observe exponential charging and determine tau = RC.`,
+        confidence: 0.98
+      } satisfies MatchResponse);
+    }
+
     // Matches Ohm's Law
     if (
       cleanQuery.includes('voltage') ||

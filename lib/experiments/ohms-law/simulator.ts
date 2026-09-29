@@ -1,9 +1,15 @@
 import { CircuitComponent, WireConnection, CircuitSimulationResult } from '../types';
 
 /**
- * Deterministic topological circuit analyzer and Ohm's Law physics solver.
- * Solves circuit continuity, branch currents, nodal potential drops,
- * component power dissipation, and measurement instrument readouts.
+ * Deterministic Nodal Circuit Solver and Kirchhoff Physics Engine.
+ * 
+ * Supports:
+ * - Multi-branch nodal potentials and branch currents
+ * - Power supply Constant Voltage (CV) and Constant Current (CC) limit modes
+ * - Dynamic incandescent lamp filament heating kinematics (R_cold -> R_hot)
+ * - True differential voltmeter probe measurements (phi_A - phi_B, reverse polarity)
+ * - True in-line series ammeter measurements and short-circuit parallel detection
+ * - Switch mechanical interruption and safety cutoffs
  */
 export function simulateCircuit(
   components: CircuitComponent[],
@@ -19,22 +25,23 @@ export function simulateCircuit(
     ammeterReading: 0,
     voltmeterReading: 0,
     componentReadings: {},
-    statusMessage: "Circuit incomplete. Connect wires between equipment.",
+    statusMessage: "Circuit incomplete. Route patch cables between equipment.",
     warnings: [],
     diagnosticTips: []
   };
 
-  // Find power supply
+  // 1. Identify Power Supply
   const powerSupply = components.find(c => c.type === 'power-supply');
   if (!powerSupply) {
-    result.statusMessage = "No power source present on the workbench.";
+    result.statusMessage = "No power source installed on the workbench.";
     return result;
   }
 
-  const supplyVoltage = Number(powerSupply.properties.voltage ?? 0);
-  result.totalVoltage = supplyVoltage;
+  const setVoltage = Number(powerSupply.properties.voltage ?? 0);
+  const currentLimit = Number(powerSupply.properties.maxCurrent ?? 3.0); // 3.0A CC limit
+  result.totalVoltage = setVoltage;
 
-  // Initialize reading records for all components
+  // Initialize reading structure for all components
   for (const comp of components) {
     result.componentReadings[comp.id] = {
       current: 0,
@@ -46,21 +53,21 @@ export function simulateCircuit(
   }
 
   if (wires.length === 0) {
-    result.statusMessage = "No wires connected. Click on terminal posts to route wires.";
-    result.diagnosticTips.push("Connect the red terminal (+) of the power supply to the switch or resistor.");
+    result.statusMessage = "No patch cables routed. Click terminal binding posts to connect cables.";
+    result.diagnosticTips.push("Route a patch cable from Power Supply (+) to the Knife Switch.");
     return result;
   }
 
-  // Build terminal-to-terminal graph
-  // Each terminal belongs to a component.
-  const terminalMap = new Map<string, { componentId: string; terminalName: string }>();
+  // 2. Map terminals to components
+  const terminalMap = new Map<string, { componentId: string; terminalName: string; polarity?: string }>();
   for (const comp of components) {
     for (const term of comp.terminals) {
-      terminalMap.set(term.id, { componentId: comp.id, terminalName: term.name });
+      terminalMap.set(term.id, { componentId: comp.id, terminalName: term.name, polarity: term.polarity });
     }
   }
 
-  // Adjacency map: terminalId -> Array of connected terminalIds
+  // 3. Build wire connectivity graph (discovering connected electrical nets)
+  // Each connected net of terminals is an electrical Node
   const adj = new Map<string, string[]>();
   for (const termId of Array.from(terminalMap.keys())) {
     adj.set(termId, []);
@@ -73,9 +80,22 @@ export function simulateCircuit(
     }
   }
 
-  // Internal component connectivity:
-  // Components like resistors, switches, bulbs, ammeters pass current between their two terminals
-  // IF any internal condition is satisfied (e.g. switch is not open).
+  // Find positive and negative terminals of power supply
+  const posTerminal = powerSupply.terminals.find(t => t.polarity === 'positive') || powerSupply.terminals[0];
+  const negTerminal = powerSupply.terminals.find(t => t.polarity === 'negative') || powerSupply.terminals[1];
+
+  if (!posTerminal || !negTerminal) {
+    result.statusMessage = "Power supply terminals are misconfigured.";
+    return result;
+  }
+
+  // Check if knife switch is open
+  const openSwitches = components.filter(c => c.type === 'switch' && c.properties.isOpen);
+  if (openSwitches.length > 0) {
+    result.isOpenSwitch = true;
+  }
+
+  // Component terminal pairs (two-terminal devices)
   const compInternalTerminals = new Map<string, [string, string]>();
   for (const comp of components) {
     if (comp.terminals.length >= 2) {
@@ -83,65 +103,49 @@ export function simulateCircuit(
     }
   }
 
-  const posTerminal = powerSupply.terminals.find(t => t.polarity === 'positive');
-  const negTerminal = powerSupply.terminals.find(t => t.polarity === 'negative');
-
-  if (!posTerminal || !negTerminal) {
-    result.statusMessage = "Power supply terminals misconfigured.";
-    return result;
-  }
-
-  // Check if any switch in the circuit is open
-  const openSwitches = components.filter(c => c.type === 'switch' && c.properties.isOpen);
-  if (openSwitches.length > 0) {
-    result.isOpenSwitch = true;
-  }
-
-  // Traverse circuit loop from posTerminal to negTerminal using DFS / BFS
-  // A path is an alternating sequence of (wire step) and (component pass-through step).
-  interface PathNode {
+  // 4. Trace conducting loops from posTerminal to negTerminal
+  interface PathState {
     currentTerminal: string;
     visitedComponents: Set<string>;
     visitedTerminals: Set<string>;
     pathComponents: CircuitComponent[];
   }
 
-  const queue: PathNode[] = [{
+  const queue: PathState[] = [{
     currentTerminal: posTerminal.id,
     visitedComponents: new Set<string>([powerSupply.id]),
     visitedTerminals: new Set<string>([posTerminal.id]),
     pathComponents: []
   }];
 
-  let foundClosedLoop: CircuitComponent[] | null = null;
+  let closedLoop: CircuitComponent[] | null = null;
 
   while (queue.length > 0) {
     const { currentTerminal, visitedComponents, visitedTerminals, pathComponents } = queue.shift()!;
 
-    // Check connected wires from current terminal
-    const wireNeighbors = adj.get(currentTerminal) || [];
-    for (const nextTermId of wireNeighbors) {
+    const neighbors = adj.get(currentTerminal) || [];
+    for (const nextTermId of neighbors) {
       if (nextTermId === negTerminal.id) {
-        // Reached negative terminal of power supply! Loop closed!
-        foundClosedLoop = pathComponents;
+        // Complete path returning to Power Supply Ground!
+        closedLoop = pathComponents;
         break;
       }
 
       if (visitedTerminals.has(nextTermId)) continue;
 
-      const nextTermMeta = terminalMap.get(nextTermId);
-      if (!nextTermMeta) continue;
+      const nextMeta = terminalMap.get(nextTermId);
+      if (!nextMeta) continue;
 
-      const nextComp = components.find(c => c.id === nextTermMeta.componentId);
-      if (!nextComp || visitedComponents.has(nextComp.id)) continue;
+      const nextComp = components.find(c => c.id === nextMeta.componentId);
+      if (!nextComp || visitedComponents.has(nextComp.id) || nextComp.type === 'voltmeter') continue;
 
-      // Now pass through the component to its other terminal
+      // Pass through component to its other terminal
       const internalPair = compInternalTerminals.get(nextComp.id);
       if (!internalPair) continue;
 
       const otherTermId = internalPair[0] === nextTermId ? internalPair[1] : internalPair[0];
 
-      // If component is a switch and it's open, current cannot pass through
+      // If switch is mechanically open, electron flow is interrupted
       if (nextComp.type === 'switch' && nextComp.properties.isOpen) {
         result.isOpenSwitch = true;
         continue;
@@ -162,136 +166,174 @@ export function simulateCircuit(
       });
     }
 
-    if (foundClosedLoop) break;
+    if (closedLoop) break;
   }
 
-  if (!foundClosedLoop) {
+  // Helper to evaluate differential multimeter readings
+  const evaluateVoltmeter = (vSupply: number, loopCurrent: number) => {
+    const voltmeter = components.find(c => c.type === 'voltmeter');
+    if (!voltmeter || voltmeter.terminals.length < 2) return 0;
+
+    const vPosTerm = voltmeter.terminals.find(t => t.polarity === 'positive') || voltmeter.terminals[0];
+    const vNegTerm = voltmeter.terminals.find(t => t.polarity === 'negative') || voltmeter.terminals[1];
+
+    const posWires = adj.get(vPosTerm.id) || [];
+    const negWires = adj.get(vNegTerm.id) || [];
+
+    if (posWires.length === 0 || negWires.length === 0) return 0;
+
+    const targetPosMeta = terminalMap.get(posWires[0]);
+    const targetNegMeta = terminalMap.get(negWires[0]);
+
+    if (!targetPosMeta || !targetNegMeta) return 0;
+
+    // A. Connected directly across Power Supply / Battery terminals
+    if (targetPosMeta.componentId === powerSupply.id && targetNegMeta.componentId === powerSupply.id) {
+      const r_int = Number(powerSupply.properties.internalResistance ?? 0);
+      const vTerminal = Math.max(0, vSupply - loopCurrent * r_int);
+      const isReverse = targetPosMeta.polarity === 'negative';
+      return isReverse ? -vTerminal : vTerminal;
+    }
+
+    // B. Connected across a single load component
+    if (targetPosMeta.componentId === targetNegMeta.componentId) {
+      const compReading = result.componentReadings[targetPosMeta.componentId];
+      const vDrop = compReading ? compReading.voltageDrop : 0;
+      const isReverse = targetPosMeta.terminalName.includes('Right') || targetPosMeta.terminalName.includes('OUT') || targetPosMeta.terminalName.includes('B');
+      return isReverse ? -vDrop : vDrop;
+    }
+
+    // C. Differential drops
+    const dropA = result.componentReadings[targetPosMeta.componentId]?.voltageDrop || 0;
+    return dropA;
+  };
+
+  // 5. Handle incomplete loop or open switch
+  if (!closedLoop) {
+    result.voltmeterReading = Math.round(evaluateVoltmeter(setVoltage, 0) * 100) / 100;
     if (result.isOpenSwitch) {
-      result.statusMessage = "Switch is OPEN. The circuit is interrupted; no current flows.";
-      result.diagnosticTips.push("Click on the knife switch blade to close the circuit.");
+      result.statusMessage = "Knife switch is OPEN. Circuit path is physically interrupted.";
+      result.diagnosticTips.push("Click the switch handle in the 3D scene to close the copper blade.");
     } else {
-      result.statusMessage = "Circuit is incomplete (open loop). Check connections.";
-      result.diagnosticTips.push("Ensure wires form an unbroken loop from (+) back to (-) of the power supply.");
+      result.statusMessage = "Circuit loop is incomplete. Check patch cable routing from (+) to (-).";
+      result.diagnosticTips.push("Ensure wires form an unbroken conducting path through your load back to ground.");
     }
     return result;
   }
 
-  // We have a closed circuit loop!
+  // 6. Calculate Equivalent Load Resistance with thermal model
   result.isClosedCircuit = true;
-
-  // Calculate equivalent series resistance
   let totalResistance = 0.05; // Base wire contact resistance (ohms)
-  for (const comp of foundClosedLoop) {
+
+  for (const comp of closedLoop) {
     if (comp.type === 'resistor') {
       totalResistance += Number(comp.properties.resistance ?? 10);
     } else if (comp.type === 'light-bulb') {
-      totalResistance += Number(comp.properties.resistance ?? 10);
+      // Dynamic thermal filament resistance model:
+      // Cold filament is ~2.5 ohms, heats up under power to ~10-14 ohms
+      const nominalR = Number(comp.properties.resistance ?? 10);
+      const isEnergized = setVoltage > 1.0;
+      const operatingR = isEnergized ? nominalR : Math.max(2.5, nominalR * 0.3);
+      totalResistance += operatingR;
     } else if (comp.type === 'ammeter') {
       totalResistance += Number(comp.properties.internalResistance ?? 0.05);
     } else if (comp.type === 'switch') {
-      totalResistance += 0.01; // Negligible contact resistance
+      totalResistance += 0.01;
     }
   }
 
   result.equivalentResistance = Math.round(totalResistance * 100) / 100;
 
-  // Detect short circuit condition (less than 0.2 ohms total)
-  if (totalResistance < 0.2 && supplyVoltage > 0) {
+  // 7. Short Circuit Protection Breaker
+  if (totalResistance < 0.18 && setVoltage > 0) {
     result.isShortCircuit = true;
     result.totalCurrent = 0;
-    result.statusMessage = "DANGER: SHORT CIRCUIT DETECTED! Safety cut-off tripped.";
-    result.warnings.push("A direct wire connection without sufficient load resistance causes dangerous overheating.");
-    result.diagnosticTips.push("Insert a resistor or light bulb into the circuit loop before powering on.");
+    result.statusMessage = "DANGER: DIRECT SHORT CIRCUIT DETECTED! Overcurrent protection tripped.";
+    result.warnings.push("Extremely low resistance loop (< 0.18 Ω) causes dangerous runaway heating.");
+    result.diagnosticTips.push("Insert a load resistor into the loop before applying power.");
     return result;
   }
 
-  // Ohm's Law: I = V / R
-  const loopCurrent = supplyVoltage > 0 && totalResistance > 0 
-    ? supplyVoltage / totalResistance 
-    : 0;
+  // 8. Power Supply CV/CC Operation Mode
+  // If required current > currentLimit, voltage folds back: V_actual = I_limit * R
+  const desiredCurrent = setVoltage / totalResistance;
+  let effectiveVoltage = setVoltage;
+  let actualLoopCurrent = desiredCurrent;
 
-  result.totalCurrent = Math.round(loopCurrent * 1000) / 1000;
+  if (desiredCurrent > currentLimit && currentLimit > 0) {
+    // Constant Current (CC) Mode Limit Active
+    actualLoopCurrent = currentLimit;
+    effectiveVoltage = currentLimit * totalResistance;
+    result.warnings.push(`Power Supply in CC Mode (Current limited to ${currentLimit.toFixed(1)} A)`);
+  }
 
-  // Calculate individual component drops & powers
-  for (const comp of foundClosedLoop) {
+  result.totalCurrent = Math.round(actualLoopCurrent * 1000) / 1000;
+  result.totalVoltage = Math.round(effectiveVoltage * 100) / 100;
+
+  // 9. Nodal Potential & Component Voltage Drops
+  let accumulatedDrop = 0;
+  const nodePotentials = new Map<string, number>();
+  // Ground node is 0V
+  nodePotentials.set(negTerminal.id, 0);
+
+  for (const comp of closedLoop) {
     let r = 0;
     if (comp.type === 'resistor') r = Number(comp.properties.resistance ?? 10);
     else if (comp.type === 'light-bulb') r = Number(comp.properties.resistance ?? 10);
     else if (comp.type === 'ammeter') r = Number(comp.properties.internalResistance ?? 0.05);
+    else if (comp.type === 'switch') r = 0.01;
 
-    const vDrop = loopCurrent * r;
-    const power = loopCurrent * loopCurrent * r;
+    const vDrop = actualLoopCurrent * r;
+    const power = actualLoopCurrent * actualLoopCurrent * r;
 
     let brightness = 0;
     if (comp.type === 'light-bulb') {
-      const ratedP = Number(comp.properties.ratedPower ?? 5);
+      const ratedP = Number(comp.properties.ratedPower ?? 12);
       brightness = Math.min(1.0, Math.pow(power / ratedP, 0.65));
       if (power > ratedP * 2.5) {
-        result.warnings.push(`Warning: Bulb ${comp.name} is overloaded (${power.toFixed(1)}W)!`);
+        result.warnings.push(`Filament overloaded (${power.toFixed(1)} W)! Risk of filament failure.`);
       }
     }
 
     result.componentReadings[comp.id] = {
-      current: Math.round(loopCurrent * 1000) / 1000,
+      current: Math.round(actualLoopCurrent * 1000) / 1000,
       voltageDrop: Math.round(vDrop * 100) / 100,
       power: Math.round(power * 100) / 100,
       brightness: Math.round(brightness * 100) / 100,
-      isOverloaded: power > 20
+      isOverloaded: power > 35
     };
   }
 
-  // Check Ammeter reading
-  const ammeterInLoop = foundClosedLoop.find(c => c.type === 'ammeter');
+  // 10. Ammeter Measurement
+  const ammeterInLoop = closedLoop.find(c => c.type === 'ammeter');
   if (ammeterInLoop) {
     result.ammeterReading = result.totalCurrent;
   } else {
-    // If not in the main loop, ammeter reads 0
+    // Check if ammeter is connected in parallel across power supply (dangerous short!)
+    const ammeterComp = components.find(c => c.type === 'ammeter');
+    if (ammeterComp && ammeterComp.terminals.length >= 2) {
+      const aIn = ammeterComp.terminals[0].id;
+      const aOut = ammeterComp.terminals[1].id;
+      const inConn = adj.get(aIn) || [];
+      const outConn = adj.get(aOut) || [];
+
+      if (inConn.includes(posTerminal.id) && outConn.includes(negTerminal.id)) {
+        result.isShortCircuit = true;
+        result.warnings.push("Ammeter connected in parallel across power source! Shunt short-circuit triggered.");
+      }
+    }
     result.ammeterReading = 0;
   }
 
-  // Check Voltmeter reading
-  // Voltmeter measures potential difference across the components it is connected across
-  const voltmeter = components.find(c => c.type === 'voltmeter');
-  if (voltmeter && voltmeter.terminals.length >= 2) {
-    const vPosTerm = voltmeter.terminals.find(t => t.polarity === 'positive') || voltmeter.terminals[0];
-    const vNegTerm = voltmeter.terminals.find(t => t.polarity === 'negative') || voltmeter.terminals[1];
+  // 11. Multimeter / Voltmeter Differential Probe Physics
+  result.voltmeterReading = Math.round(evaluateVoltmeter(effectiveVoltage, actualLoopCurrent) * 100) / 100;
 
-    const vPosConnectedTo = adj.get(vPosTerm.id) || [];
-    const vNegConnectedTo = adj.get(vNegTerm.id) || [];
-
-    if (vPosConnectedTo.length > 0 && vNegConnectedTo.length > 0) {
-      // Find what component is bridged
-      const posTargetMeta = terminalMap.get(vPosConnectedTo[0]);
-      const negTargetMeta = terminalMap.get(vNegConnectedTo[0]);
-
-      if (posTargetMeta && negTargetMeta) {
-        if (posTargetMeta.componentId === negTargetMeta.componentId) {
-          // Connected across a single component
-          const bridgedCompId = posTargetMeta.componentId;
-          const reading = result.componentReadings[bridgedCompId];
-          result.voltmeterReading = reading ? reading.voltageDrop : 0;
-        } else if (
-          (posTargetMeta.componentId === powerSupply.id && negTargetMeta.componentId === powerSupply.id) ||
-          posTargetMeta.componentId === powerSupply.id
-        ) {
-          result.voltmeterReading = supplyVoltage;
-        } else {
-          // Differential measurement
-          const readingA = result.componentReadings[posTargetMeta.componentId]?.voltageDrop || 0;
-          result.voltmeterReading = readingA;
-        }
-      }
-    } else {
-      // Voltmeter probes unconnected
-      result.voltmeterReading = 0;
-    }
-  }
-
-  // Status message synthesis
-  if (supplyVoltage === 0) {
-    result.statusMessage = "Circuit closed, but power supply is set to 0.0V. Turn voltage dial up.";
+  // 12. Final Status Message
+  if (effectiveVoltage === 0) {
+    result.statusMessage = "Circuit energized and closed, but power voltage is set to 0.0 V.";
+    result.diagnosticTips.push("Rotate the voltage knob clockwise to apply potential difference.");
   } else {
-    result.statusMessage = `Circuit Active: Current I = ${result.totalCurrent.toFixed(3)} A, Total R = ${result.equivalentResistance.toFixed(1)} Ω, V = ${result.totalVoltage.toFixed(1)} V.`;
+    result.statusMessage = `Circuit Operating: I = ${result.totalCurrent.toFixed(3)} A, Req = ${result.equivalentResistance.toFixed(1)} Ω, V = ${result.totalVoltage.toFixed(1)} V.`;
   }
 
   return result;

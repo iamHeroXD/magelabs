@@ -11,6 +11,7 @@ import { MeasurementPanel } from "@/components/lab/MeasurementPanel";
 import { LabNotebook } from "@/components/lab/LabNotebook";
 import { WireConnectionUI } from "@/components/lab/WireConnectionUI";
 import { LabAssistantWidget } from "@/components/ai/LabAssistantWidget";
+import { LabDebugOverlay } from "@/components/lab/LabDebugOverlay";
 import { CameraPreset } from "@/components/3d/LabCamera";
 import {
   CircuitComponent,
@@ -321,6 +322,16 @@ export default function LabPage() {
         simulationResult={simulationResult}
         components={components}
         wires={wires}
+      />
+
+      {/* Physics Nodal Solver & Geometry Debug Overlay (Press ~) */}
+      <LabDebugOverlay
+        components={components}
+        wires={wires}
+        simulationResult={simulationResult}
+        onToggleSwitch={handleToggleSwitch}
+        onAutoWire={handleAutoWire}
+        onClearWires={() => setWires([])}
       />
     </div>
   );

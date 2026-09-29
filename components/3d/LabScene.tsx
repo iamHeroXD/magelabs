@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { LabCamera, CameraPreset } from "./LabCamera";
+import { LabRoom3D } from "./LabRoom3D";
 import { PowerSupply3D } from "./equipment/PowerSupply3D";
 import { Switch3D } from "./equipment/Switch3D";
 import { Resistor3D } from "./equipment/Resistor3D";
@@ -15,6 +16,7 @@ import {
   WireConnection,
   CircuitSimulationResult,
 } from "@/lib/experiments/types";
+import { labAudio } from "@/lib/audio/sound-effects";
 import * as THREE from "three";
 
 interface LabSceneProps {
@@ -65,24 +67,36 @@ export function LabScene({
   const handleTerminalClick = (terminalId: string) => {
     if (!activeWiringTerminalId) {
       // Start wire routing
+      labAudio.playKnobClick();
       setActiveWiringTerminalId(terminalId);
     } else {
       if (activeWiringTerminalId === terminalId) {
         // Deselect if clicked same terminal
+        labAudio.playKnobClick();
         setActiveWiringTerminalId(null);
       } else {
         // Connect wire between activeWiringTerminalId and terminalId
+        labAudio.playPlugSnap();
         onWireConnect?.(activeWiringTerminalId, terminalId);
         setActiveWiringTerminalId(null);
       }
     }
   };
 
+  const handleDisconnectWire = (wireId: string) => {
+    labAudio.playPlugUnplug();
+    onWireDisconnect?.(wireId);
+  };
+
   return (
     <div className="relative h-full w-full bg-[#0a0c10] select-none">
       <Canvas
         shadows
-        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.1 }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.15,
+        }}
         camera={{ position: [0, 4.2, 4.8], fov: 46 }}
         onPointerMissed={() => {
           // Deselect active wire routing when clicking empty space
@@ -91,66 +105,24 @@ export function LabScene({
       >
         <LabCamera preset={cameraPreset} />
 
-        {/* Studio Laboratory Lighting */}
+        {/* Authentic Physics Laboratory Room Architecture */}
+        <LabRoom3D />
+
+        {/* Studio Directional Key & Fill Lighting */}
         <ambientLight intensity={0.45} color="#cbd5e1" />
         <directionalLight
-          position={[4, 8, 4]}
-          intensity={1.2}
+          position={[5, 9, 4]}
+          intensity={1.3}
           color="#ffffff"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
           shadow-bias={-0.0001}
         />
-        <directionalLight position={[-4, 5, -2]} intensity={0.4} color="#94a3b8" />
-        <pointLight position={[0, 3, 0]} intensity={0.2} color="#f59e0b" />
+        <directionalLight position={[-6, 6, -2]} intensity={0.5} color="#94a3b8" />
+        <pointLight position={[0, 3.5, 0]} intensity={0.3} color="#f59e0b" />
 
-        {/* Laboratory Bench Environment */}
-        <group position={[0, 0, 0]}>
-          {/* Epoxy resin lab table top */}
-          <mesh position={[0, -0.05, 0]} receiveShadow>
-            <boxGeometry args={[7.2, 0.1, 4.2]} />
-            <meshStandardMaterial
-              roughness={0.65}
-              metalness={0.15}
-              color="#13171f"
-            />
-          </mesh>
-
-          {/* ESD Anti-Static Lab Work Mat */}
-          <mesh position={[0, 0.002, 0]} receiveShadow>
-            <planeGeometry args={[6.2, 3.4]} />
-            <meshStandardMaterial
-              roughness={0.8}
-              metalness={0.05}
-              color="#1a202c"
-            />
-          </mesh>
-
-          {/* Table edge beveled wooden trim */}
-          <mesh position={[0, -0.05, 2.12]}>
-            <boxGeometry args={[7.24, 0.12, 0.04]} />
-            <meshStandardMaterial roughness={0.7} color="#292524" />
-          </mesh>
-          <mesh position={[0, -0.05, -2.12]}>
-            <boxGeometry args={[7.24, 0.12, 0.04]} />
-            <meshStandardMaterial roughness={0.7} color="#292524" />
-          </mesh>
-
-          {/* Subtle room floor far below */}
-          <mesh position={[0, -2.8, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[25, 25]} />
-            <meshStandardMaterial roughness={0.9} color="#08090b" />
-          </mesh>
-
-          {/* Back laboratory wall */}
-          <mesh position={[0, 2.5, -4.5]}>
-            <planeGeometry args={[20, 10]} />
-            <meshStandardMaterial roughness={0.95} color="#0f1117" />
-          </mesh>
-        </group>
-
-        {/* Render Circuit Components */}
+        {/* Render 3D Circuit Equipment */}
         {components.map((comp) => {
           switch (comp.type) {
             case "power-supply":
@@ -219,7 +191,7 @@ export function LabScene({
           }
         })}
 
-        {/* Render Wires */}
+        {/* Render 3D Wires */}
         {wires.map((wire) => {
           const start = terminalWorldPositions.get(wire.fromTerminalId);
           const end = terminalWorldPositions.get(wire.toTerminalId);
@@ -233,7 +205,7 @@ export function LabScene({
               startPos={start}
               endPos={end}
               color={wire.color}
-              onDisconnect={onWireDisconnect}
+              onDisconnect={handleDisconnectWire}
             />
           );
         })}

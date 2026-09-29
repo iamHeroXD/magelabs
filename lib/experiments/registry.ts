@@ -1,8 +1,14 @@
 import { ExperimentDefinition } from './types';
 import { OHMS_LAW_EXPERIMENT } from './ohms-law/definition';
+import { SERIES_PARALLEL_EXPERIMENT } from './series-parallel/definition';
+import { INTERNAL_RESISTANCE_EXPERIMENT } from './internal-resistance/definition';
+import { RC_TRANSIENT_EXPERIMENT } from './rc-transient/definition';
 
 export const EXPERIMENT_CATALOG: ExperimentDefinition[] = [
   OHMS_LAW_EXPERIMENT,
+  SERIES_PARALLEL_EXPERIMENT,
+  INTERNAL_RESISTANCE_EXPERIMENT,
+  RC_TRANSIENT_EXPERIMENT,
   {
     id: 'simple-pendulum',
     title: 'Simple Pendulum & Gravitational Acceleration',
@@ -18,7 +24,16 @@ export const EXPERIMENT_CATALOG: ExperimentDefinition[] = [
     ],
     standardComponents: [],
     initialWires: [],
-    challenges: [],
+    challenges: [
+      {
+        id: 'ch-pendulum-period',
+        title: 'Calibrate Photogate Timer',
+        instruction: 'Release bob at an amplitude under 15° and record 10 complete periods.',
+        targetMetric: 'recorded_points',
+        targetValue: 3,
+        isCompleted: false
+      }
+    ],
     hints: ['Small angle approximation applies when amplitude is under 15 degrees.'],
     theoryNotes: {
       law: 'Simple Harmonic Motion',
@@ -47,7 +62,16 @@ export const EXPERIMENT_CATALOG: ExperimentDefinition[] = [
     ],
     standardComponents: [],
     initialWires: [],
-    challenges: [],
+    challenges: [
+      {
+        id: 'ch-titration-endpoint',
+        title: 'Identify Equivalence Point',
+        instruction: 'Add titrant dropwise until permanent faint pink color is achieved (pH ≈ 7.0 - 8.2).',
+        targetMetric: 'recorded_points',
+        targetValue: 3,
+        isCompleted: false
+      }
+    ],
     hints: ['Rinse burette tip before recording initial meniscus reading.'],
     theoryNotes: {
       law: 'Neutralization Stoichiometry',
@@ -75,7 +99,16 @@ export const EXPERIMENT_CATALOG: ExperimentDefinition[] = [
     ],
     standardComponents: [],
     initialWires: [],
-    challenges: [],
+    challenges: [
+      {
+        id: 'ch-microscope-focus',
+        title: 'Optimize Specimen Contrast',
+        instruction: 'Focus specimen under 10x objective and adjust condenser diaphragm aperture.',
+        targetMetric: 'recorded_points',
+        targetValue: 2,
+        isCompleted: false
+      }
+    ],
     hints: ['Always start focusing with the lowest magnification 4x objective.'],
     theoryNotes: {
       law: 'Optical Magnification',

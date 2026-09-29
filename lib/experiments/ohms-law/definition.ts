@@ -36,7 +36,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Positive Output (+)',
           label: '+',
           polarity: 'positive',
-          position: [0.35, 0.2, 0.25]
+          position: [0.32, 0.12, 0.52]
         },
         {
           id: 'ps-neg',
@@ -44,7 +44,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Negative Ground (-)',
           label: '-',
           polarity: 'negative',
-          position: [-0.35, 0.2, 0.25]
+          position: [-0.32, 0.12, 0.52]
         }
       ]
     },
@@ -65,7 +65,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Hinge Terminal',
           label: 'IN',
           polarity: 'neutral',
-          position: [-0.35, 0.15, 0]
+          position: [-0.35, 0.08, 0.2]
         },
         {
           id: 'sw-t2',
@@ -73,7 +73,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Jaw Contact Terminal',
           label: 'OUT',
           polarity: 'neutral',
-          position: [0.35, 0.15, 0]
+          position: [0.35, 0.08, 0.2]
         }
       ]
     },
@@ -95,7 +95,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Left Terminal',
           label: 'A',
           polarity: 'neutral',
-          position: [-0.45, 0.1, 0]
+          position: [-0.45, 0.08, 0.0]
         },
         {
           id: 'res-t2',
@@ -103,7 +103,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Right Terminal',
           label: 'B',
           polarity: 'neutral',
-          position: [0.45, 0.1, 0]
+          position: [0.45, 0.08, 0.0]
         }
       ]
     },
@@ -124,7 +124,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Current In (+)',
           label: '+A',
           polarity: 'positive',
-          position: [-0.25, 0.15, 0.2]
+          position: [-0.25, 0.12, 0.38]
         },
         {
           id: 'amm-out',
@@ -132,7 +132,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Current Out (-)',
           label: '-COM',
           polarity: 'negative',
-          position: [0.25, 0.15, 0.2]
+          position: [0.25, 0.12, 0.38]
         }
       ]
     },
@@ -154,7 +154,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Center Contact (+)',
           label: 'T1',
           polarity: 'neutral',
-          position: [-0.2, 0.1, 0]
+          position: [-0.26, 0.1, 0.0]
         },
         {
           id: 'bulb-t2',
@@ -162,7 +162,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Thread Base (-)',
           label: 'T2',
           polarity: 'neutral',
-          position: [0.2, 0.1, 0]
+          position: [0.26, 0.1, 0.0]
         }
       ]
     },
@@ -183,7 +183,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Voltage Probe (+ Red)',
           label: 'VΩ',
           polarity: 'positive',
-          position: [0.2, 0.15, 0.2]
+          position: [0.22, 0.08, 0.36]
         },
         {
           id: 'vm-neg',
@@ -191,7 +191,7 @@ export const OHMS_LAW_EXPERIMENT: ExperimentDefinition = {
           name: 'Common Probe (- Black)',
           label: 'COM',
           polarity: 'negative',
-          position: [-0.2, 0.15, 0.2]
+          position: [-0.22, 0.08, 0.36]
         }
       ]
     }

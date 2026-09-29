@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { TerminalPost3D } from "./TerminalPost3D";
 import { CircuitComponent } from "@/lib/experiments/types";
-import { Html } from "@react-three/drei";
+import * as THREE from "three";
 
 interface Resistor3DProps {
   component: CircuitComponent;
@@ -34,10 +34,12 @@ export function Resistor3D({
   reading,
 }: Resistor3DProps) {
   const resistance = Number(component.properties.resistance ?? 10.0);
+  const power = reading?.power ?? 0;
+  const isHeating = power > 5.0; // Dissipating noticeable thermal wattage
 
   // Derive 4-band EIA color codes from resistance value
   const bands = useMemo(() => {
-    let r = Math.round(resistance);
+    const r = Math.round(resistance);
     const rStr = r.toString();
     const d1 = parseInt(rStr[0], 10) || 1;
     const d2 = parseInt(rStr[1], 10) || 0;
@@ -56,66 +58,80 @@ export function Resistor3D({
 
   return (
     <group position={component.position} rotation={component.rotation}>
-      {/* Phenolic mounting board */}
+      {/* Heavy phenolic mounting board */}
       <mesh position={[0, 0.04, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.3, 0.08, 0.65]} />
-        <meshStandardMaterial roughness={0.7} metalness={0.1} color="#1c1917" />
+        <meshStandardMaterial roughness={0.7} metalness={0.15} color="#1c1917" />
       </mesh>
 
-      {/* Resistor axial lead wires */}
+      {/* Silkscreened PCB / Phenolic Label Plate */}
+      <group position={[0, 0.082, 0.18]}>
+        <mesh>
+          <planeGeometry args={[0.6, 0.15]} />
+          <meshStandardMaterial roughness={0.5} color="#f8fafc" />
+        </mesh>
+      </group>
+
+      {/* Resistor axial lead wires (pure tinned copper) */}
       <mesh position={[0, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.016, 0.016, 0.9, 16]} />
         <meshStandardMaterial metalness={0.9} roughness={0.2} color="#d4d4d8" />
       </mesh>
 
-      {/* Main ceramic body */}
+      {/* Main ceramic vitrified enamel body */}
       <mesh position={[0, 0.16, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-        <cylinderGeometry args={[0.085, 0.085, 0.44, 24]} />
-        <meshStandardMaterial roughness={0.5} metalness={0.1} color="#d6c5a5" />
+        <cylinderGeometry args={[0.088, 0.088, 0.44, 24]} />
+        <meshStandardMaterial
+          roughness={0.4}
+          metalness={0.08}
+          color={isHeating ? "#c2410c" : "#e2d5be"}
+          emissive={isHeating ? "#ea580c" : "#000000"}
+          emissiveIntensity={Math.min(1.2, power * 0.05)}
+        />
       </mesh>
 
-      {/* End caps */}
+      {/* Nickel-plated steel end caps */}
       <mesh position={[-0.2, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.088, 0.088, 0.04, 24]} />
-        <meshStandardMaterial metalness={0.8} roughness={0.3} color="#a1a1aa" />
+        <cylinderGeometry args={[0.092, 0.092, 0.045, 24]} />
+        <meshStandardMaterial metalness={0.88} roughness={0.25} color="#a1a1aa" />
       </mesh>
       <mesh position={[0.2, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.088, 0.088, 0.04, 24]} />
-        <meshStandardMaterial metalness={0.8} roughness={0.3} color="#a1a1aa" />
+        <cylinderGeometry args={[0.092, 0.092, 0.045, 24]} />
+        <meshStandardMaterial metalness={0.88} roughness={0.25} color="#a1a1aa" />
       </mesh>
 
-      {/* Band 1 */}
+      {/* EIA Color Band 1 (1st Significant Digit) */}
       <mesh position={[-0.12, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.087, 0.087, 0.035, 24]} />
+        <cylinderGeometry args={[0.089, 0.089, 0.038, 24]} />
         <meshStandardMaterial color={bands.band1} roughness={0.3} />
       </mesh>
 
-      {/* Band 2 */}
+      {/* EIA Color Band 2 (2nd Significant Digit) */}
       <mesh position={[-0.04, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.087, 0.087, 0.035, 24]} />
+        <cylinderGeometry args={[0.089, 0.089, 0.038, 24]} />
         <meshStandardMaterial color={bands.band2} roughness={0.3} />
       </mesh>
 
-      {/* Band 3 (Multiplier) */}
+      {/* EIA Color Band 3 (Decimal Multiplier) */}
       <mesh position={[0.04, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.087, 0.087, 0.035, 24]} />
+        <cylinderGeometry args={[0.089, 0.089, 0.038, 24]} />
         <meshStandardMaterial color={bands.band3} roughness={0.3} />
       </mesh>
 
-      {/* Band 4 (Tolerance - Gold) */}
+      {/* EIA Color Band 4 (Tolerance ±5% Gold) */}
       <mesh position={[0.13, 0.16, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.087, 0.087, 0.035, 24]} />
-        <meshStandardMaterial color={bands.band4} metalness={0.8} roughness={0.2} />
+        <cylinderGeometry args={[0.089, 0.089, 0.038, 24]} />
+        <meshStandardMaterial color={bands.band4} metalness={0.85} roughness={0.2} />
       </mesh>
 
-      {/* Terminals */}
+      {/* Terminals at Canonical Coordinates */}
       {t1 && (
         <TerminalPost3D
           id={t1.id}
           name={t1.name}
           label={t1.label}
           polarity="neutral"
-          position={[-0.45, 0.08, 0]}
+          position={t1.position as [number, number, number]}
           isActiveWiringSource={activeWiringTerminalId === t1.id}
           onTerminalClick={onTerminalClick}
         />
@@ -127,23 +143,11 @@ export function Resistor3D({
           name={t2.name}
           label={t2.label}
           polarity="neutral"
-          position={[0.45, 0.08, 0]}
+          position={t2.position as [number, number, number]}
           isActiveWiringSource={activeWiringTerminalId === t2.id}
           onTerminalClick={onTerminalClick}
         />
       )}
-
-      {/* Resistance readout plate */}
-      <Html position={[0, 0.38, 0]} transform distanceFactor={3.6}>
-        <div className="flex flex-col items-center bg-zinc-950/90 px-2 py-1 rounded border border-zinc-800 text-center font-mono pointer-events-none select-none shadow-md">
-          <span className="text-xs font-bold text-amber-400">{resistance} Ω (±5%)</span>
-          {reading && reading.power > 0 && (
-            <span className="text-[10px] text-zinc-400">
-              {reading.voltageDrop.toFixed(2)}V · {reading.power.toFixed(2)}W
-            </span>
-          )}
-        </div>
-      </Html>
     </group>
   );
 }

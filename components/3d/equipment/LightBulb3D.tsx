@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { TerminalPost3D } from "./TerminalPost3D";
 import { CircuitComponent } from "@/lib/experiments/types";
-import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 interface LightBulb3DProps {
@@ -22,13 +21,13 @@ export function LightBulb3D({
   const brightness = reading?.brightness ?? 0;
   const power = reading?.power ?? 0;
 
-  // Filament emissive color interpolation based on temperature/brightness
+  // Filament emissive blackbody color interpolation
   const filamentColor = useMemo(() => {
     if (brightness <= 0.01) return "#27272a";
-    if (brightness < 0.2) return "#991b1b"; // Deep red
+    if (brightness < 0.2) return "#991b1b"; // Deep cherry red
     if (brightness < 0.5) return "#ea580c"; // Warm orange
-    if (brightness < 0.8) return "#facc15"; // Bright yellow
-    return "#fffbeb"; // Incandescent white
+    if (brightness < 0.8) return "#facc15"; // Incandescent warm yellow
+    return "#fffbeb"; // Brilliant white-hot
   }, [brightness]);
 
   const t1 = component.terminals[0];
@@ -39,25 +38,25 @@ export function LightBulb3D({
       {/* Heavy circular porcelain socket base */}
       <mesh position={[0, 0.05, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.38, 0.42, 0.1, 32]} />
-        <meshStandardMaterial roughness={0.8} metalness={0.1} color="#27272a" />
+        <meshStandardMaterial roughness={0.7} metalness={0.1} color="#27272a" />
       </mesh>
 
-      {/* Brass screw collar */}
+      {/* Brass screw collar with rolled threads */}
       <mesh position={[0, 0.16, 0]}>
         <cylinderGeometry args={[0.18, 0.18, 0.14, 24]} />
-        <meshStandardMaterial metalness={0.85} roughness={0.3} color="#ca8a04" />
+        <meshStandardMaterial metalness={0.88} roughness={0.25} color="#ca8a04" />
       </mesh>
 
-      {/* Glass bulb envelope */}
+      {/* Glass bulb envelope with physical transmission */}
       <mesh position={[0, 0.38, 0]}>
         <sphereGeometry args={[0.26, 32, 32]} />
         <meshPhysicalMaterial
-          roughness={0.1}
+          roughness={0.08}
           metalness={0.05}
-          transmission={0.92}
-          thickness={0.4}
+          transmission={0.94}
+          thickness={0.35}
           transparent
-          opacity={0.85}
+          opacity={0.88}
           color={brightness > 0.1 ? "#fef3c7" : "#e2e8f0"}
         />
       </mesh>
@@ -72,37 +71,37 @@ export function LightBulb3D({
         <meshStandardMaterial metalness={0.9} roughness={0.2} color="#94a3b8" />
       </mesh>
 
-      {/* Coiled Tungsten Filament */}
+      {/* Coiled Tungsten Filament with dynamic blackbody thermal glow */}
       <mesh position={[0, 0.41, 0]}>
-        <torusGeometry args={[0.05, 0.012, 16, 32, Math.PI]} />
+        <torusGeometry args={[0.052, 0.014, 16, 32, Math.PI]} />
         <meshStandardMaterial
           color={filamentColor}
           emissive={filamentColor}
-          emissiveIntensity={brightness * 2.8}
-          roughness={0.3}
+          emissiveIntensity={brightness * 3.5}
+          roughness={0.2}
         />
       </mesh>
 
-      {/* Dynamic 3D Point Light when illuminated */}
+      {/* Dynamic 3D Point Light casting warm real-time illumination onto the workbench */}
       {brightness > 0.05 && (
         <pointLight
           position={[0, 0.42, 0]}
           color="#ffedd5"
-          intensity={brightness * 4.5}
-          distance={4.5}
+          intensity={brightness * 5.0}
+          distance={4.8}
           decay={2}
           castShadow
         />
       )}
 
-      {/* Terminals */}
+      {/* Terminals at Canonical Coordinates */}
       {t1 && (
         <TerminalPost3D
           id={t1.id}
           name={t1.name}
           label={t1.label}
           polarity="neutral"
-          position={[-0.26, 0.1, 0]}
+          position={t1.position as [number, number, number]}
           isActiveWiringSource={activeWiringTerminalId === t1.id}
           onTerminalClick={onTerminalClick}
         />
@@ -114,21 +113,11 @@ export function LightBulb3D({
           name={t2.name}
           label={t2.label}
           polarity="neutral"
-          position={[0.26, 0.1, 0]}
+          position={t2.position as [number, number, number]}
           isActiveWiringSource={activeWiringTerminalId === t2.id}
           onTerminalClick={onTerminalClick}
         />
       )}
-
-      {/* Power status badge */}
-      <Html position={[0, 0.72, 0]} transform distanceFactor={3.6}>
-        <div className="flex flex-col items-center bg-zinc-950/90 px-2 py-0.5 rounded border border-zinc-800 text-center font-mono pointer-events-none select-none shadow">
-          <span className="text-[10px] uppercase tracking-wider text-zinc-400">Filament Lamp</span>
-          <span className={`text-xs font-bold ${brightness > 0.05 ? "text-amber-400" : "text-zinc-500"}`}>
-            {brightness > 0.05 ? `${power.toFixed(1)} W · ${(brightness * 100).toFixed(0)}%` : "0.0 W (OFF)"}
-          </span>
-        </div>
-      </Html>
     </group>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import * as THREE from "three";
-import { Html } from "@react-three/drei";
+import { labAudio } from "@/lib/audio/sound-effects";
 
 interface Wire3DProps {
   id: string;
@@ -22,43 +22,42 @@ export function Wire3D({
   const [hovered, setHovered] = useState(false);
 
   // Generate a realistic 3D Catmull-Rom spline with gravity drape
-  const { geometry, startPlugPos, endPlugPos, startNormal, endNormal } = useMemo(() => {
-    const p0 = new THREE.Vector3(...startPos);
-    const p3 = new THREE.Vector3(...endPos);
+  const { geometry, p0, p3 } = useMemo(() => {
+    const pt0 = new THREE.Vector3(...startPos);
+    const pt3 = new THREE.Vector3(...endPos);
 
-    const distance = p0.distanceTo(p3);
-    const sag = Math.min(0.35, distance * 0.12); // subtle sag based on wire span
+    const distance = pt0.distanceTo(pt3);
+    const sag = Math.min(0.4, Math.max(0.08, distance * 0.15));
 
-    // Midpoints with vertical sag towards table
-    const p1 = new THREE.Vector3()
-      .lerpVectors(p0, p3, 0.3)
-      .add(new THREE.Vector3(0, -sag, (Math.random() - 0.5) * 0.05));
-    const p2 = new THREE.Vector3()
-      .lerpVectors(p0, p3, 0.7)
-      .add(new THREE.Vector3(0, -sag, (Math.random() - 0.5) * 0.05));
+    // Calculate midpoint sag with gravity drop
+    const pt1 = new THREE.Vector3().lerpVectors(pt0, pt3, 0.3);
+    pt1.y -= sag;
+    // Keep cable above the workbench top (y >= 0.04)
+    pt1.y = Math.max(0.06, pt1.y);
 
-    // Keep sag above bench level
-    p1.y = Math.max(0.08, p1.y);
-    p2.y = Math.max(0.08, p2.y);
+    const pt2 = new THREE.Vector3().lerpVectors(pt0, pt3, 0.7);
+    pt2.y -= sag;
+    pt2.y = Math.max(0.06, pt2.y);
 
-    const curve = new THREE.CatmullRomCurve3([p0, p1, p2, p3]);
-    const geo = new THREE.TubeGeometry(curve, 36, 0.016, 12, false);
-
-    const startDir = new THREE.Vector3().subVectors(p1, p0).normalize();
-    const endDir = new THREE.Vector3().subVectors(p3, p2).normalize();
+    const curve = new THREE.CatmullRomCurve3([pt0, pt1, pt2, pt3]);
+    const geo = new THREE.TubeGeometry(curve, 48, 0.016, 12, false);
 
     return {
       geometry: geo,
-      startPlugPos: p0,
-      endPlugPos: p3,
-      startNormal: startDir,
-      endNormal: endDir,
+      p0: pt0,
+      p3: pt3,
     };
   }, [startPos, endPos]);
 
+  const handleDisconnect = (e: any) => {
+    e.stopPropagation();
+    labAudio.playPlugUnplug();
+    onDisconnect?.(id);
+  };
+
   return (
     <group>
-      {/* Dynamic wire tube */}
+      {/* Dynamic flexible patch cable tube */}
       <mesh
         geometry={geometry}
         castShadow
@@ -70,59 +69,52 @@ export function Wire3D({
           e.stopPropagation();
           setHovered(false);
         }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onDisconnect?.(id);
-        }}
+        onClick={handleDisconnect}
       >
         <meshStandardMaterial
           roughness={0.4}
           metalness={0.1}
           color={hovered ? "#38bdf8" : color}
           emissive={hovered ? "#0284c7" : "#000000"}
-          emissiveIntensity={hovered ? 0.5 : 0}
+          emissiveIntensity={hovered ? 0.6 : 0}
         />
       </mesh>
 
-      {/* Start terminal banana plug sleeve */}
-      <mesh position={startPlugPos}>
-        <cylinderGeometry args={[0.038, 0.038, 0.09, 16]} />
-        <meshStandardMaterial
-          roughness={0.5}
-          metalness={0.1}
-          color={hovered ? "#38bdf8" : color}
-        />
-      </mesh>
+      {/* 4mm Banana Plug 1 (Start) */}
+      <group position={p0}>
+        {/* Molded rubber strain relief boot */}
+        <mesh position={[0, 0.04, 0]}>
+          <cylinderGeometry args={[0.034, 0.038, 0.09, 16]} />
+          <meshStandardMaterial
+            roughness={0.5}
+            metalness={0.1}
+            color={hovered ? "#38bdf8" : color}
+          />
+        </mesh>
+        {/* Gold-plated 4-leaf split spring pin */}
+        <mesh position={[0, -0.02, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 0.05, 12]} />
+          <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
+        </mesh>
+      </group>
 
-      {/* End terminal banana plug sleeve */}
-      <mesh position={endPlugPos}>
-        <cylinderGeometry args={[0.038, 0.038, 0.09, 16]} />
-        <meshStandardMaterial
-          roughness={0.5}
-          metalness={0.1}
-          color={hovered ? "#38bdf8" : color}
-        />
-      </mesh>
-
-      {/* Click-to-disconnect tooltip */}
-      {hovered && (
-        <Html
-          position={[
-            (startPos[0] + endPos[0]) / 2,
-            Math.max(startPos[1], endPos[1]) + 0.15,
-            (startPos[2] + endPos[2]) / 2,
-          ]}
-          center
-          distanceFactor={6}
-        >
-          <button
-            onClick={() => onDisconnect?.(id)}
-            className="rounded bg-red-950/95 px-2 py-0.5 text-[10px] font-mono font-semibold text-red-200 border border-red-700/80 shadow-lg hover:bg-red-900 cursor-pointer whitespace-nowrap"
-          >
-            Click to Disconnect
-          </button>
-        </Html>
-      )}
+      {/* 4mm Banana Plug 2 (End) */}
+      <group position={p3}>
+        {/* Molded rubber strain relief boot */}
+        <mesh position={[0, 0.04, 0]}>
+          <cylinderGeometry args={[0.034, 0.038, 0.09, 16]} />
+          <meshStandardMaterial
+            roughness={0.5}
+            metalness={0.1}
+            color={hovered ? "#38bdf8" : color}
+          />
+        </mesh>
+        {/* Gold-plated 4-leaf split spring pin */}
+        <mesh position={[0, -0.02, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 0.05, 12]} />
+          <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
+        </mesh>
+      </group>
     </group>
   );
 }
