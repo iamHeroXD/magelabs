@@ -9,6 +9,8 @@ import { LabVesselState } from "@/components/chemistry/equipment/InteractiveVess
 import { ChemistryHUD } from "@/components/chemistry/ChemistryHUD";
 import { ChemistryNotebook } from "@/components/chemistry/ChemistryNotebook";
 import { ChemistryAIAssistant } from "@/components/chemistry/ChemistryAIAssistant";
+import { RobotTask } from "@/components/chemistry/avatar/LabRobotAvatar3D";
+import { RobotMenuModal } from "@/components/chemistry/avatar/RobotMenuModal";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
 const ChemistryScene = dynamic(
@@ -124,6 +126,11 @@ export default function ChemistryLabPage() {
   const [highlightedApparatus, setHighlightedApparatus] = useState<string | null>(null);
   const [trials, setTrials] = useState<TitrationTrial[]>([]);
 
+  // AURA AI Autonomous Lab Robot State
+  const [activeRobotTask, setActiveRobotTask] = useState<RobotTask>("idle");
+  const [isRobotMenuOpen, setIsRobotMenuOpen] = useState(false);
+  const robotTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Fixed Standardized Chemistry Parameters
   const analyteVolumeMl = 25.0;
   const analyteConcentration = 0.100;
@@ -191,20 +198,120 @@ export default function ChemistryLabPage() {
     };
   }, [isStopcockOpen, flowRateMode]);
 
-  // Keyboard shortcut listener ('C' inspect, 'R' place down held vessel)
+  // Autonomous Robot Task Execution Handler
+  const handleStartRobotTask = useCallback((task: RobotTask) => {
+    setActiveRobotTask(task);
+    chemistryAudio.playBeep();
+
+    if (robotTimerRef.current) {
+      clearTimeout(robotTimerRef.current);
+    }
+
+    if (task === "titrating") {
+      // Step 1: Approach & add indicator at 1.5s
+      setTimeout(() => {
+        setHasIndicator(true);
+        chemistryAudio.playLiquidDrop();
+      }, 1500);
+
+      // Step 2: Open stopcock at 3.0s
+      setTimeout(() => {
+        setIsStopcockOpen(true);
+        setStopcockAngle(90);
+        setFlowRateMode("stream");
+        chemistryAudio.playStopcockClick();
+      }, 3000);
+
+      // Step 3: Exact equivalence point reached at 7.0s
+      setTimeout(() => {
+        setDispensedMl(25.0);
+        setIsStopcockOpen(false);
+        setStopcockAngle(0);
+        setFlowRateMode("closed");
+        chemistryAudio.playStopcockClick();
+      }, 7000);
+
+      // Step 4: Finish task at 8.0s
+      robotTimerRef.current = setTimeout(() => {
+        setActiveRobotTask("idle");
+        chemistryAudio.playBeep();
+      }, 8200);
+    } else if (task === "heating") {
+      // Robot heats hotplate beaker with CuSO4
+      setTimeout(() => {
+        chemistryAudio.playStopcockClick();
+        setVessels((prev) =>
+          prev.map((v) =>
+            v.id === "hotplate-beaker"
+              ? { ...v, solutionId: "cuso4", solutionColor: "#0284c7", currentVolumeMl: 55 }
+              : v
+          )
+        );
+      }, 2500);
+
+      robotTimerRef.current = setTimeout(() => {
+        setActiveRobotTask("idle");
+        chemistryAudio.playBeep();
+      }, 6500);
+    } else if (task === "centrifuging") {
+      robotTimerRef.current = setTimeout(() => {
+        setActiveRobotTask("idle");
+        chemistryAudio.playBeep();
+      }, 6500);
+    } else if (task === "cleaning") {
+      // Reset all vessels and titration
+      setTimeout(() => {
+        setVessels(INITIAL_VESSELS);
+        setDispensedMl(0.0);
+        setHasIndicator(false);
+        setIsStopcockOpen(false);
+        setStopcockAngle(0);
+        setFlowRateMode("closed");
+        chemistryAudio.playGlassClink();
+      }, 1800);
+
+      robotTimerRef.current = setTimeout(() => {
+        setActiveRobotTask("idle");
+        chemistryAudio.playBeep();
+      }, 4000);
+    }
+  }, []);
+
+  const handleAbortRobotTask = useCallback(() => {
+    if (robotTimerRef.current) {
+      clearTimeout(robotTimerRef.current);
+    }
+    setIsStopcockOpen(false);
+    setStopcockAngle(0);
+    setFlowRateMode("closed");
+    setActiveRobotTask("idle");
+    chemistryAudio.playStopcockClick();
+  }, []);
+
+  // Keyboard shortcut listener ('C' inspect, 'R' robot menu or drop held vessel, 'Escape' close modals)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "KeyC") {
         setIsInspecting((prev) => !prev);
       }
       if (e.code === "KeyR") {
-        setHeldVesselId(null);
-        chemistryAudio.playGlassClink();
+        if (heldVesselId) {
+          setHeldVesselId(null);
+          chemistryAudio.playGlassClink();
+        } else {
+          setIsRobotMenuOpen((prev) => !prev);
+          chemistryAudio.playBeep();
+        }
+      }
+      if (e.code === "Escape") {
+        setIsRobotMenuOpen(false);
+        setIsNotebookOpen(false);
+        setIsAssistantOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [heldVesselId]);
 
   // Initialize room ventilation hum on first user interaction
   useEffect(() => {
@@ -371,6 +478,9 @@ export default function ChemistryLabPage() {
         vessels={vessels}
         heldVesselId={heldVesselId}
         isPouring={isPouring}
+        activeRobotTask={activeRobotTask}
+        onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
+        onRobotTaskComplete={() => setActiveRobotTask("idle")}
         onToggleStopcock={handleToggleStopcock}
         onAddIndicator={handleAddIndicator}
         onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
@@ -405,6 +515,19 @@ export default function ChemistryLabPage() {
         onOpenNotebook={() => setIsNotebookOpen(true)}
         onToggleAssistant={() => setIsAssistantOpen((prev) => !prev)}
         isAssistantOpen={isAssistantOpen}
+        onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
+        activeRobotTask={activeRobotTask}
+      />
+
+      {/* AURA Autonomous Lab Robot Task Selection Modal */}
+      <RobotMenuModal
+        isOpen={isRobotMenuOpen}
+        onClose={() => setIsRobotMenuOpen(false)}
+        activeTask={activeRobotTask}
+        onSelectTask={handleStartRobotTask}
+        onAbortTask={handleAbortRobotTask}
+        currentPh={equilibrium.pH}
+        dispensedMl={dispensedMl}
       />
 
       {/* Laboratory Notebook Modal */}

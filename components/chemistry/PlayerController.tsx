@@ -38,13 +38,14 @@ export function PlayerController({
   const euler = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
   const isLocked = useRef(false);
   const footstepAccumulator = useRef(0);
+  const targetFov = useRef(52);
 
-  // Initial camera position (standing in front of the central chemistry bench)
+  // Initial camera position (close ergonomic standing eye height at chemistry bench)
   useEffect(() => {
     if (!isInspecting) {
-      camera.position.set(0, 1.65, 1.8);
-      camera.rotation.set(-0.25, 0, 0);
-      euler.current.set(-0.25, 0, 0, "YXZ");
+      camera.position.set(0, 1.48, 0.96);
+      camera.rotation.set(-0.28, 0, 0);
+      euler.current.set(-0.28, 0, 0, "YXZ");
     }
   }, [camera, isInspecting]);
 
@@ -103,6 +104,10 @@ export function PlayerController({
         case "KeyE":
           onInteract();
           break;
+        case "KeyZ":
+          // Quick toggle between macro inspection zoom (30°) and normal overview (52°)
+          targetFov.current = targetFov.current <= 36 ? 52 : 30;
+          break;
       }
     };
 
@@ -131,8 +136,14 @@ export function PlayerController({
       }
     };
 
+    const handleWheel = (e: WheelEvent) => {
+      // Mouse-wheel smooth FOV zoom
+      targetFov.current = Math.max(26, Math.min(65, targetFov.current + e.deltaY * 0.04));
+    };
+
     document.addEventListener("pointerlockchange", handlePointerLockChange);
     dom.addEventListener("mousedown", handleMouseDown);
+    dom.addEventListener("wheel", handleWheel, { passive: true });
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -140,6 +151,7 @@ export function PlayerController({
     return () => {
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
       dom.removeEventListener("mousedown", handleMouseDown);
+      dom.removeEventListener("wheel", handleWheel);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
@@ -187,7 +199,7 @@ export function PlayerController({
     }
 
     // ─────────────────────────────────────────────────────────────
-    // COLLISION RESOLUTION (Capsule radius = 0.35m)
+    // COLLISION RESOLUTION (Ergonomic close approach to bench)
     // ─────────────────────────────────────────────────────────────
     let resolvedX = nextX;
     let resolvedZ = nextZ;
@@ -196,21 +208,21 @@ export function PlayerController({
     resolvedX = Math.max(-5.4, Math.min(5.4, resolvedX));
     resolvedZ = Math.max(-6.2, Math.min(6.2, resolvedZ));
 
-    // 2. Central Island Bench (X: [-2.2, 2.2], Z: [-0.95, 0.95] + radius)
-    const inBenchX = resolvedX >= -2.55 && resolvedX <= 2.55;
-    const inBenchZ = resolvedZ >= -1.25 && resolvedZ <= 1.25;
+    // 2. Central Island Bench (X: [-2.35, 2.35], Z: [-0.92, 0.92])
+    const inBenchX = resolvedX >= -2.35 && resolvedX <= 2.35;
+    const inBenchZ = resolvedZ >= -0.92 && resolvedZ <= 0.92;
     if (inBenchX && inBenchZ) {
       // Push out along shortest penetration axis
-      const distLeft = Math.abs(resolvedX - (-2.55));
-      const distRight = Math.abs(resolvedX - 2.55);
-      const distFront = Math.abs(resolvedZ - 1.25);
-      const distBack = Math.abs(resolvedZ - (-1.25));
+      const distLeft = Math.abs(resolvedX - (-2.35));
+      const distRight = Math.abs(resolvedX - 2.35);
+      const distFront = Math.abs(resolvedZ - 0.92);
+      const distBack = Math.abs(resolvedZ - (-0.92));
       const minDist = Math.min(distLeft, distRight, distFront, distBack);
 
-      if (minDist === distFront) resolvedZ = 1.26;
-      else if (minDist === distBack) resolvedZ = -1.26;
-      else if (minDist === distLeft) resolvedX = -2.56;
-      else if (minDist === distRight) resolvedX = 2.56;
+      if (minDist === distFront) resolvedZ = 0.93;
+      else if (minDist === distBack) resolvedZ = -0.93;
+      else if (minDist === distLeft) resolvedX = -2.36;
+      else if (minDist === distRight) resolvedX = 2.36;
     }
 
     // 3. Left Wall Counter (X < -4.6, Z in [-3.5, 3.5])
@@ -225,7 +237,14 @@ export function PlayerController({
 
     camera.position.x = resolvedX;
     camera.position.z = resolvedZ;
-    camera.position.y = 1.65; // Fixed realistic standing eye height
+    camera.position.y = 1.48; // Ergonomic standing eye height looking down at bench
+
+    // Smooth FOV Zoom Interpolation
+    const persCam = camera as THREE.PerspectiveCamera;
+    if (persCam.fov && Math.abs(persCam.fov - targetFov.current) > 0.05) {
+      persCam.fov = THREE.MathUtils.lerp(persCam.fov, targetFov.current, 10 * delta);
+      persCam.updateProjectionMatrix();
+    }
 
     // ─────────────────────────────────────────────────────────────
     // INTERACTION RAYCASTING

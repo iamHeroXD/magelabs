@@ -13,6 +13,8 @@ import { HotplateStirrer3D } from "./equipment/HotplateStirrer3D";
 import { Centrifuge3D } from "./equipment/Centrifuge3D";
 import { InteractiveVessels, LabVesselState } from "./equipment/InteractiveVessels";
 import { HandHeldVessel3D } from "./HandHeldVessel3D";
+import { FirstPersonHands3D } from "./FirstPersonHands3D";
+import { LabRobotAvatar3D, RobotTask } from "./avatar/LabRobotAvatar3D";
 import { PlayerController } from "./PlayerController";
 import { InspectionCamera } from "./InspectionCamera";
 
@@ -30,6 +32,9 @@ interface ChemistrySceneProps {
   vessels: LabVesselState[];
   heldVesselId: string | null;
   isPouring: boolean;
+  activeRobotTask: RobotTask;
+  onOpenRobotMenu: () => void;
+  onRobotTaskComplete?: (task: RobotTask) => void;
   onToggleStopcock: () => void;
   onAddIndicator: () => void;
   onToggleCeilingLights: () => void;
@@ -54,6 +59,9 @@ export function ChemistryScene({
   vessels,
   heldVesselId,
   isPouring,
+  activeRobotTask,
+  onOpenRobotMenu,
+  onRobotTaskComplete,
   onToggleStopcock,
   onAddIndicator,
   onToggleCeilingLights,
@@ -68,7 +76,7 @@ export function ChemistryScene({
   return (
     <div className="absolute inset-0 w-full h-full bg-[#070709]">
       <Canvas
-        camera={{ position: [0, 1.65, 1.8], fov: 60 }}
+        camera={{ position: [0, 1.48, 0.96], fov: 52 }}
         shadows
         gl={{
           antialias: true,
@@ -167,17 +175,31 @@ export function ChemistryScene({
           />
         </group>
 
-        {/* 3. Hand-Held Carried Vessel in First-Person Camera View */}
+        {/* 3. Autonomous AI Laboratory Robot Avatar (AURA) */}
+        <LabRobotAvatar3D
+          onOpenMenu={onOpenRobotMenu}
+          activeTask={activeRobotTask}
+          onTaskComplete={onRobotTaskComplete}
+        />
+
+        {/* 4. Dual First-Person Nitrile Lab Gloves */}
+        <FirstPersonHands3D
+          heldVessel={heldVessel}
+          isPouring={isPouring}
+          isInspecting={isInspecting}
+        />
+
+        {/* 5. Hand-Held Carried Vessel in First-Person Camera View */}
         <HandHeldVessel3D heldVessel={heldVessel} isPouring={isPouring} />
 
-        {/* 4. Player First-Person Controller with WASD, Capsule Collision, & Raycasting */}
+        {/* 6. Player First-Person Controller with WASD, Capsule Collision, & Raycasting */}
         <PlayerController
           isInspecting={isInspecting}
           onInteract={onInteract}
           onHoverObject={onHoverObject}
         />
 
-        {/* 5. Inspection Camera Dolly */}
+        {/* 7. Inspection Camera Dolly */}
         <InspectionCamera isInspecting={isInspecting} />
       </Canvas>
     </div>

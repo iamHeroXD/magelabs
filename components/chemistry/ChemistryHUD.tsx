@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   ArrowDownCircle,
+  Bot,
 } from "lucide-react";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 import { useState } from "react";
@@ -44,6 +45,8 @@ interface ChemistryHUDProps {
   onOpenNotebook: () => void;
   onToggleAssistant: () => void;
   isAssistantOpen: boolean;
+  onOpenRobotMenu?: () => void;
+  activeRobotTask?: string;
 }
 
 export function ChemistryHUD({
@@ -69,6 +72,8 @@ export function ChemistryHUD({
   onOpenNotebook,
   onToggleAssistant,
   isAssistantOpen,
+  onOpenRobotMenu,
+  activeRobotTask,
 }: ChemistryHUDProps) {
   const [isMuted, setIsMuted] = useState(false);
 
@@ -104,6 +109,26 @@ export function ChemistryHUD({
 
         {/* Top-right: Controls & Navigation */}
         <div className="flex items-center gap-2 pointer-events-auto">
+          {/* AURA Robot Assistant Trigger Button */}
+          {onOpenRobotMenu && (
+            <button
+              onClick={onOpenRobotMenu}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs font-mono transition-all backdrop-blur-md ${
+                activeRobotTask && activeRobotTask !== "idle"
+                  ? "bg-amber-950/80 border-amber-500/60 text-amber-300 animate-pulse"
+                  : "bg-sky-950/60 border-sky-500/40 hover:border-sky-400 text-sky-300 hover:text-white"
+              }`}
+              title="AURA Autonomous Lab Robot [Click or Press R]"
+            >
+              <Bot className="h-3.5 w-3.5 text-sky-400" />
+              <span>
+                {activeRobotTask && activeRobotTask !== "idle"
+                  ? `AURA: ${activeRobotTask.toUpperCase()}`
+                  : "AURA ROBOT"}
+              </span>
+            </button>
+          )}
+
           {/* Light Toggle */}
           <button
             onClick={onToggleCeilingLights}
