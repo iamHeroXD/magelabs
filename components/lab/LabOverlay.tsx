@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -13,19 +13,27 @@ import {
   BookOpen,
   BarChart2,
   Activity,
-  Layers
+  Layers,
+  Footprints,
+  Eye,
+  Zap,
+  Timer,
+  Compass,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CameraPreset } from "../3d/LabCamera";
+import { CameraMode, CameraStation } from "../3d/LabCamera";
 import { CircuitSimulationResult } from "@/lib/experiments/types";
 
 interface LabOverlayProps {
   title: string;
   subject: string;
   simulationResult: CircuitSimulationResult;
-  cameraPreset: CameraPreset;
-  onCameraChange: (preset: CameraPreset) => void;
+  cameraMode: CameraMode;
+  cameraStation: CameraStation;
+  onCameraModeChange: (mode: CameraMode) => void;
+  onCameraStationChange: (station: CameraStation) => void;
   onResetExperiment: () => void;
   onAutoWire: () => void;
   activePanel: "controls" | "measurements" | "notebook" | "wires" | null;
@@ -36,8 +44,10 @@ export function LabOverlay({
   title,
   subject,
   simulationResult,
-  cameraPreset,
-  onCameraChange,
+  cameraMode,
+  cameraStation,
+  onCameraModeChange,
+  onCameraStationChange,
   onResetExperiment,
   onAutoWire,
   activePanel,
@@ -91,7 +101,7 @@ export function LabOverlay({
   return (
     <>
       {/* Top HUD Bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-3 sm:p-4 bg-gradient-to-b from-zinc-950/90 via-zinc-950/60 to-transparent pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-3 sm:p-4 bg-gradient-to-b from-zinc-950/95 via-zinc-950/70 to-transparent pointer-events-none">
         {/* Left: Back button & Lab details */}
         <div className="flex items-center gap-3 pointer-events-auto">
           <Link href="/dashboard">
@@ -111,51 +121,113 @@ export function LabOverlay({
           </div>
         </div>
 
-        {/* Center: Camera Presets */}
-        <div className="hidden md:flex items-center gap-1 rounded-lg bg-zinc-900/80 p-1 border border-zinc-800 pointer-events-auto backdrop-blur-md">
-          <span className="text-[11px] font-mono text-zinc-400 px-2 flex items-center gap-1">
-            <Camera className="h-3 w-3" /> View:
-          </span>
-          <button
-            onClick={() => onCameraChange("default")}
-            className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
-              cameraPreset === "default"
-                ? "bg-zinc-800 text-amber-400 font-semibold shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => onCameraChange("top")}
-            className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
-              cameraPreset === "top"
-                ? "bg-zinc-800 text-amber-400 font-semibold shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            Top-Down
-          </button>
-          <button
-            onClick={() => onCameraChange("circuit")}
-            className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
-              cameraPreset === "circuit"
-                ? "bg-zinc-800 text-amber-400 font-semibold shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            Circuit
-          </button>
-          <button
-            onClick={() => onCameraChange("multimeter")}
-            className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
-              cameraPreset === "multimeter"
-                ? "bg-zinc-800 text-amber-400 font-semibold shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            Meters
-          </button>
+        {/* Center: Camera Mode & Open Laboratory Station Selector */}
+        <div className="hidden lg:flex items-center gap-2 pointer-events-auto">
+          {/* Mode Switcher: Walk vs Inspect */}
+          <div className="flex items-center rounded-lg bg-zinc-900/90 p-1 border border-zinc-800 backdrop-blur-md shadow-xl">
+            <button
+              onClick={() => onCameraModeChange("walk")}
+              title="First-Person Walkthrough (WASD keys + Mouse drag)"
+              className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono font-semibold transition-all ${
+                cameraMode === "walk"
+                  ? "bg-amber-500 text-zinc-950 shadow-md"
+                  : "text-zinc-400 hover:text-zinc-100"
+              }`}
+            >
+              <Footprints className="h-3.5 w-3.5" />
+              Walk [WASD]
+            </button>
+            <button
+              onClick={() => onCameraModeChange("orbit")}
+              title="Station Focus & Bench Orbit Inspection"
+              className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono font-semibold transition-all ${
+                cameraMode === "orbit"
+                  ? "bg-zinc-800 text-amber-400 border border-amber-500/30 shadow-md"
+                  : "text-zinc-400 hover:text-zinc-100"
+              }`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Inspect
+            </button>
+          </div>
+
+          {/* Station Quick-Jump Teleport Buttons */}
+          <div className="flex items-center gap-1 rounded-lg bg-zinc-900/80 p-1 border border-zinc-800/80 backdrop-blur-md">
+            <button
+              onClick={() => {
+                onCameraModeChange("orbit");
+                onCameraStationChange("circuits");
+              }}
+              title="Jump to DC Circuits Workbench [Key 1]"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                cameraStation === "circuits" && cameraMode === "orbit"
+                  ? "bg-zinc-800 text-cyan-300 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Zap className="h-3 w-3 text-amber-400" />
+              Circuits
+            </button>
+            <button
+              onClick={() => {
+                onCameraModeChange("orbit");
+                onCameraStationChange("pendulum");
+              }}
+              title="Jump to Harmonic Pendulum Station [Key 2]"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                cameraStation === "pendulum" && cameraMode === "orbit"
+                  ? "bg-zinc-800 text-emerald-300 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Timer className="h-3 w-3 text-emerald-400" />
+              Pendulum
+            </button>
+            <button
+              onClick={() => {
+                onCameraModeChange("orbit");
+                onCameraStationChange("optics");
+              }}
+              title="Jump to Optical Dispersion Rail [Key 3]"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                cameraStation === "optics" && cameraMode === "orbit"
+                  ? "bg-zinc-800 text-purple-300 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Compass className="h-3 w-3 text-purple-400" />
+              Optics
+            </button>
+            <button
+              onClick={() => {
+                onCameraModeChange("orbit");
+                onCameraStationChange("whiteboard");
+              }}
+              title="Jump to Physics Whiteboard [Key 4]"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                cameraStation === "whiteboard" && cameraMode === "orbit"
+                  ? "bg-zinc-800 text-blue-300 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <FileText className="h-3 w-3 text-blue-400" />
+              Whiteboard
+            </button>
+            <button
+              onClick={() => {
+                onCameraModeChange("orbit");
+                onCameraStationChange("overview");
+              }}
+              title="Room Overview [Key 5]"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                cameraStation === "overview" && cameraMode === "orbit"
+                  ? "bg-zinc-800 text-amber-300 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Overview
+            </button>
+          </div>
         </div>
 
         {/* Right: Actions */}
@@ -202,7 +274,7 @@ export function LabOverlay({
           title="Circuit Controls"
         >
           <Sliders className="h-5 w-5" />
-          <span className="hidden xl:inline text-xs font-medium">Controls</span>
+          <span className="text-xs font-mono hidden md:inline font-semibold">Controls</span>
         </button>
 
         <button
@@ -212,10 +284,10 @@ export function LabOverlay({
               ? "bg-amber-500/20 border-amber-500/60 text-amber-300"
               : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
           }`}
-          title="Measurements & V-I Graph"
+          title="Live Measurements"
         >
           <BarChart2 className="h-5 w-5" />
-          <span className="hidden xl:inline text-xs font-medium">Measurements</span>
+          <span className="text-xs font-mono hidden md:inline font-semibold">Meters</span>
         </button>
 
         <button
@@ -225,10 +297,10 @@ export function LabOverlay({
               ? "bg-amber-500/20 border-amber-500/60 text-amber-300"
               : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
           }`}
-          title="Lab Notebook & Data Logging"
+          title="Lab Notebook & Graphing"
         >
           <BookOpen className="h-5 w-5" />
-          <span className="hidden xl:inline text-xs font-medium">Notebook</span>
+          <span className="text-xs font-mono hidden md:inline font-semibold">Notebook</span>
         </button>
 
         <button
@@ -241,9 +313,19 @@ export function LabOverlay({
           title="Patch Cable Routing"
         >
           <Layers className="h-5 w-5" />
-          <span className="hidden xl:inline text-xs font-medium">Wiring</span>
+          <span className="text-xs font-mono hidden md:inline font-semibold">Wiring</span>
         </button>
       </div>
+
+      {/* Floating Walkthrough Controls Banner Hint */}
+      {cameraMode === "walk" && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 rounded-full bg-zinc-950/90 px-5 py-2 border border-amber-500/50 text-amber-200 text-xs font-mono shadow-2xl backdrop-blur-md">
+          <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>
+            <b>[W][A][S][D]</b> Walk &nbsp;|&nbsp; <b>[Mouse Drag]</b> Look &nbsp;|&nbsp; <b>[Shift]</b> Sprint &nbsp;|&nbsp; Press <b>[C]</b> to Inspect Bench
+          </span>
+        </div>
+      )}
     </>
   );
 }

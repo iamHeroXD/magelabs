@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { LabCamera, CameraPreset } from "./LabCamera";
+import { LabCamera, CameraMode, CameraStation } from "./LabCamera";
 import { LabRoom3D } from "./LabRoom3D";
 import { PowerSupply3D } from "./equipment/PowerSupply3D";
 import { Switch3D } from "./equipment/Switch3D";
@@ -23,7 +23,10 @@ interface LabSceneProps {
   components: CircuitComponent[];
   wires: WireConnection[];
   simulationResult: CircuitSimulationResult;
-  cameraPreset: CameraPreset;
+  cameraMode?: CameraMode;
+  cameraStation?: CameraStation;
+  onCameraModeChange?: (mode: CameraMode) => void;
+  onCameraStationChange?: (station: CameraStation) => void;
   onToggleSwitch?: () => void;
   onVoltageChange?: (v: number) => void;
   onResistanceChange?: (r: number) => void;
@@ -35,7 +38,10 @@ export function LabScene({
   components,
   wires,
   simulationResult,
-  cameraPreset,
+  cameraMode = "orbit",
+  cameraStation = "circuits",
+  onCameraModeChange,
+  onCameraStationChange,
   onToggleSwitch,
   onVoltageChange,
   onResistanceChange,
@@ -95,34 +101,46 @@ export function LabScene({
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15,
+          toneMappingExposure: 1.25,
         }}
-        camera={{ position: [0, 4.2, 4.8], fov: 46 }}
+        camera={{ position: [0, 2.4, 2.6], fov: 48 }}
         onPointerMissed={() => {
           // Deselect active wire routing when clicking empty space
           if (activeWiringTerminalId) setActiveWiringTerminalId(null);
         }}
       >
-        <LabCamera preset={cameraPreset} />
+        <LabCamera
+          mode={cameraMode}
+          station={cameraStation}
+          onModeChange={onCameraModeChange}
+          onStationChange={onCameraStationChange}
+        />
 
-        {/* Authentic Physics Laboratory Room Architecture */}
-        <LabRoom3D />
+        {/* ========================================================================= */}
+        {/* BRIGHT, AUTHENTIC LABORATORY STUDIO LIGHTING (No Dark Void)              */}
+        {/* ========================================================================= */}
+        <ambientLight intensity={1.1} color="#f8fafc" />
+        <hemisphereLight args={["#e0f2fe", "#475569", 0.9]} />
 
-        {/* Studio Directional Key & Fill Lighting */}
-        <ambientLight intensity={0.45} color="#cbd5e1" />
+        {/* Primary Sun & Key Lighting */}
         <directionalLight
-          position={[5, 9, 4]}
-          intensity={1.3}
+          position={[6, 12, 6]}
+          intensity={1.8}
           color="#ffffff"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
           shadow-bias={-0.0001}
         />
-        <directionalLight position={[-6, 6, -2]} intensity={0.5} color="#94a3b8" />
-        <pointLight position={[0, 3.5, 0]} intensity={0.3} color="#f59e0b" />
+        {/* Fill Lights from Windows and Corners */}
+        <directionalLight position={[-8, 8, -4]} intensity={0.9} color="#cbd5e1" />
+        <directionalLight position={[8, 6, 2]} intensity={1.2} color="#bae6fd" />
+        <directionalLight position={[0, 5, 8]} intensity={0.7} color="#f1f5f9" />
 
-        {/* Render 3D Circuit Equipment */}
+        {/* Open Physics Laboratory Architecture & Equipment Stations */}
+        <LabRoom3D />
+
+        {/* Render Circuit Components on Main Bench */}
         {components.map((comp) => {
           switch (comp.type) {
             case "power-supply":

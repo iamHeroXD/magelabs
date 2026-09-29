@@ -12,7 +12,7 @@ import { LabNotebook } from "@/components/lab/LabNotebook";
 import { WireConnectionUI } from "@/components/lab/WireConnectionUI";
 import { LabAssistantWidget } from "@/components/ai/LabAssistantWidget";
 import { LabDebugOverlay } from "@/components/lab/LabDebugOverlay";
-import { CameraPreset } from "@/components/3d/LabCamera";
+import { CameraMode, CameraStation } from "@/components/3d/LabCamera";
 import {
   CircuitComponent,
   WireConnection,
@@ -58,7 +58,8 @@ export default function LabPage() {
   const [wires, setWires] = useState<WireConnection[]>(() =>
     JSON.parse(JSON.stringify(experiment.initialWires))
   );
-  const [cameraPreset, setCameraPreset] = useState<CameraPreset>("default");
+  const [cameraMode, setCameraMode] = useState<CameraMode>("orbit");
+  const [cameraStation, setCameraStation] = useState<CameraStation>("circuits");
   const [activePanel, setActivePanel] = useState<
     "controls" | "measurements" | "notebook" | "wires" | null
   >("controls");
@@ -218,7 +219,10 @@ export default function LabPage() {
           components={components}
           wires={wires}
           simulationResult={simulationResult}
-          cameraPreset={cameraPreset}
+          cameraMode={cameraMode}
+          cameraStation={cameraStation}
+          onCameraModeChange={setCameraMode}
+          onCameraStationChange={setCameraStation}
           onToggleSwitch={handleToggleSwitch}
           onVoltageChange={handleVoltageChange}
           onResistanceChange={handleResistanceChange}
@@ -232,8 +236,10 @@ export default function LabPage() {
         title={experiment.title}
         subject={experiment.subject}
         simulationResult={simulationResult}
-        cameraPreset={cameraPreset}
-        onCameraChange={setCameraPreset}
+        cameraMode={cameraMode}
+        cameraStation={cameraStation}
+        onCameraModeChange={setCameraMode}
+        onCameraStationChange={setCameraStation}
         onResetExperiment={handleResetExperiment}
         onAutoWire={handleAutoWire}
         activePanel={activePanel}

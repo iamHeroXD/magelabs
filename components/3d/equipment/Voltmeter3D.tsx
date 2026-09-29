@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { TerminalPost3D } from "./TerminalPost3D";
 import { CircuitComponent } from "@/lib/experiments/types";
 import { Html } from "@react-three/drei";
@@ -27,59 +27,117 @@ export function Voltmeter3D({
 
   return (
     <group position={component.position} rotation={component.rotation}>
-      {/* Ruggedized yellow/amber protective rubber holster */}
-      <mesh position={[0, 0.25, 0]} rotation={[-0.2, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.02, 0.54, 0.82]} />
-        <meshStandardMaterial metalness={0.15} roughness={0.65} color="#d97706" />
-      </mesh>
-
-      {/* Dark textured instrument inner case */}
-      <mesh position={[0, 0.28, 0.32]} rotation={[-0.2, 0, 0]}>
-        <boxGeometry args={[0.92, 0.46, 0.04]} />
-        <meshStandardMaterial metalness={0.4} roughness={0.5} color="#18181b" />
-      </mesh>
-
-      {/* Recessed LCD Screen Bezel */}
-      <mesh position={[0, 0.34, 0.345]} rotation={[-0.2, 0, 0]}>
-        <boxGeometry args={[0.74, 0.28, 0.02]} />
-        <meshStandardMaterial metalness={0.3} roughness={0.8} color="#090a0f" />
-      </mesh>
-
-      {/* Multimeter LCD Screen Surface */}
-      <Html position={[0, 0.34, 0.355]} transform distanceFactor={3.2} rotation={[-0.2, 0, 0]} occlude>
-        <div className="flex flex-col items-center justify-center w-52 bg-zinc-950 p-2 rounded font-mono select-none pointer-events-none border border-zinc-800/80 shadow-inner">
-          <div className="flex w-full justify-between items-center text-[9px] text-zinc-400 border-b border-zinc-800 pb-0.5 mb-0.5">
-            <span className="font-bold text-amber-400 tracking-wider">MAGE DMM-880</span>
-            <span className="text-zinc-500 font-semibold">DC V AUTO</span>
-          </div>
-          <div className="flex items-baseline justify-center gap-1.5 my-0.5">
-            {isNegative && <span className="text-xl font-bold text-amber-500">-</span>}
-            <span className="text-3xl font-bold tracking-widest text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.85)]">
-              {formattedReading}
-            </span>
-            <span className="text-sm font-bold text-amber-500">V</span>
-          </div>
-          <div className="flex w-full justify-between items-center text-[8.5px] text-zinc-500">
-            <span>Hi-Z (10MΩ)</span>
-            <span className="text-zinc-400 font-semibold">ΔV PROBE</span>
-          </div>
-        </div>
-      </Html>
-
-      {/* Rotary Selection Dial */}
-      <group position={[0, 0.12, 0.38]} rotation={[Math.PI / 2 - 0.2, 0, 0]}>
-        <mesh>
-          <cylinderGeometry args={[0.075, 0.075, 0.045, 24]} />
-          <meshStandardMaterial metalness={0.7} roughness={0.35} color="#27272a" />
+      {/* ========================================================================= */}
+      {/* 25-DEGREE TILTED MULTIMETER BENCH ASSEMBLY                                */}
+      {/* ========================================================================= */}
+      <group rotation={[-0.45, 0, 0]} position={[0, 0.22, 0]}>
+        {/* Rear Wire/Steel Fold-Out Kickstand */}
+        <mesh position={[0, -0.15, -0.22]} rotation={[0.65, 0, 0]}>
+          <boxGeometry args={[0.5, 0.02, 0.45]} />
+          <meshStandardMaterial metalness={0.9} roughness={0.2} color="#cbd5e1" />
         </mesh>
-        {/* Dial pointer notch */}
-        <mesh position={[0, 0.024, -0.05]}>
-          <boxGeometry args={[0.012, 0.01, 0.04]} />
-          <meshBasicMaterial color="#ffffff" />
+
+        {/* Outer Rugged Industrial Rubber Shock Holster (Safety Yellow) */}
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[0.82, 1.25, 0.24]} />
+          <meshStandardMaterial roughness={0.5} metalness={0.08} color="#eab308" />
+        </mesh>
+
+        {/* Ergonomic Molded Side Rib Grips (Dark Gray) */}
+        {[-0.41, 0.41].map((x) =>
+          [-0.2, -0.05, 0.1].map((y) => (
+            <mesh key={`grip-${x}-${y}`} position={[x, y, 0]}>
+              <boxGeometry args={[0.03, 0.08, 0.18]} />
+              <meshStandardMaterial roughness={0.7} color="#1e293b" />
+            </mesh>
+          ))
+        )}
+
+        {/* Inner Front Faceplate Recessed Bezel (Anthracite Gray) */}
+        <mesh position={[0, 0.02, 0.08]}>
+          <boxGeometry args={[0.74, 1.15, 0.1]} />
+          <meshStandardMaterial roughness={0.4} metalness={0.2} color="#18181b" />
+        </mesh>
+
+        {/* Digital LCD Window Bezel */}
+        <mesh position={[0, 0.35, 0.132]}>
+          <boxGeometry args={[0.62, 0.34, 0.02]} />
+          <meshStandardMaterial metalness={0.5} roughness={0.2} color="#090a0f" />
+        </mesh>
+
+        {/* Backlit LCD Screen Surface */}
+        <mesh position={[0, 0.35, 0.144]}>
+          <planeGeometry args={[0.58, 0.3]} />
+          <meshStandardMaterial
+            color="#0284c7"
+            emissive="#0284c7"
+            emissiveIntensity={0.35}
+            roughness={0.15}
+          />
+        </mesh>
+
+        {/* High-Contrast Digital Reading */}
+        <Html position={[0, 0.35, 0.148]} transform distanceFactor={2.8} occlude>
+          <div className="flex flex-col items-center justify-center w-52 bg-sky-950/90 p-2 rounded font-mono select-none pointer-events-none border border-cyan-500/40 shadow-inner">
+            <div className="flex w-full justify-between items-center text-[9px] text-cyan-300 font-bold border-b border-cyan-800/60 pb-0.5 mb-0.5">
+              <span>MAGE-DMM 87V</span>
+              <span className="text-cyan-400">AUTO DC-V</span>
+            </div>
+            <div className="flex items-baseline justify-center gap-1.5 my-0.5">
+              {isNegative && <span className="text-2xl font-bold text-amber-300">-</span>}
+              <span className="text-3xl font-extrabold tracking-widest text-cyan-200 drop-shadow-[0_0_10px_rgba(56,189,248,0.9)]">
+                {formattedReading}
+              </span>
+              <span className="text-sm font-bold text-cyan-400">V</span>
+            </div>
+            <div className="flex w-full justify-between items-center text-[8.5px] text-cyan-400/80">
+              <span>Hi-Z (10MΩ)</span>
+              <span>ΔV PROBE</span>
+            </div>
+          </div>
+        </Html>
+
+        {/* Rotary Range Selector Switch with 12 Positions */}
+        <group position={[0, -0.05, 0.14]}>
+          {/* Knob circular body */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.13, 0.14, 0.05, 24]} />
+            <meshStandardMaterial metalness={0.7} roughness={0.3} color="#27272a" />
+          </mesh>
+          {/* Knob pointer bar */}
+          <mesh position={[0, 0.06, 0.026]}>
+            <boxGeometry args={[0.02, 0.1, 0.015]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+          {/* Circular range tick ring */}
+          <mesh position={[0, 0, -0.002]}>
+            <ringGeometry args={[0.16, 0.22, 24]} />
+            <meshStandardMaterial roughness={0.5} color="#38bdf8" />
+          </mesh>
+        </group>
+
+        {/* Silkscreened Function Buttons */}
+        {[-0.15, 0, 0.15].map((x) => (
+          <mesh key={`btn-${x}`} position={[x, 0.14, 0.135]}>
+            <boxGeometry args={[0.08, 0.04, 0.015]} />
+            <meshStandardMaterial roughness={0.5} color="#eab308" />
+          </mesh>
+        ))}
+
+        {/* Recessed Banana Jack Sockets on Front Bottom Panel */}
+        {/* Red VΩ Jack Recess */}
+        <mesh position={[0.22, -0.38, 0.13]}>
+          <cylinderGeometry args={[0.045, 0.045, 0.03, 16]} />
+          <meshStandardMaterial color="#dc2626" roughness={0.3} />
+        </mesh>
+        {/* Black COM Jack Recess */}
+        <mesh position={[-0.22, -0.38, 0.13]}>
+          <cylinderGeometry args={[0.045, 0.045, 0.03, 16]} />
+          <meshStandardMaterial color="#18181b" roughness={0.3} />
         </mesh>
       </group>
 
-      {/* Terminals at Canonical Coordinates */}
+      {/* Terminals placed at Canonical Coordinates */}
       {tPos && (
         <TerminalPost3D
           id={tPos.id}

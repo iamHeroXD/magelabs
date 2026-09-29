@@ -59,58 +59,77 @@ export function PowerSupply3D({
 
   return (
     <group position={component.position} rotation={component.rotation}>
-      {/* Heavy gauge metal benchtop chassis */}
+      {/* ========================================================================= */}
+      {/* LAB BENCH DC POWER SUPPLY (High-Grade Industrial Light Powder Coat)       */}
+      {/* ========================================================================= */}
+      {/* Main Steel Housing (Light Enamel Laboratory Cream-Gray) */}
       <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.3, 0.9, 0.95]} />
-        <meshStandardMaterial metalness={0.7} roughness={0.3} color="#181c24" />
+        <meshStandardMaterial metalness={0.5} roughness={0.35} color="#cbd5e1" />
       </mesh>
 
-      {/* Recessed anodized aluminum front faceplate */}
+      {/* Recessed Anodized Aluminum Front Faceplate (Slate Gray) */}
       <mesh position={[0, 0.45, 0.48]}>
         <boxGeometry args={[1.24, 0.84, 0.03]} />
-        <meshStandardMaterial metalness={0.4} roughness={0.45} color="#222834" />
+        <meshStandardMaterial metalness={0.4} roughness={0.4} color="#334155" />
       </mesh>
 
-      {/* Ventilation slots on top chassis */}
+      {/* Top Heavy-Duty Steel Carrying Handle */}
+      <group position={[0, 0.94, 0]}>
+        {/* Chrome handle strap */}
+        <mesh position={[0, 0.04, 0]}>
+          <boxGeometry args={[0.5, 0.02, 0.08]} />
+          <meshStandardMaterial metalness={0.9} roughness={0.2} color="#94a3b8" />
+        </mesh>
+        {/* Black rubber hand grip */}
+        <mesh position={[0, 0.04, 0]}>
+          <boxGeometry args={[0.28, 0.035, 0.09]} />
+          <meshStandardMaterial roughness={0.8} color="#0f172a" />
+        </mesh>
+      </group>
+
+      {/* Ventilation cooling louver slits on top */}
       {[-0.3, -0.1, 0.1, 0.3].map((x) => (
         <mesh key={`vent-${x}`} position={[x, 0.902, 0]}>
           <boxGeometry args={[0.08, 0.01, 0.5]} />
-          <meshStandardMaterial roughness={0.9} color="#0c0e12" />
+          <meshStandardMaterial roughness={0.9} color="#1e293b" />
         </mesh>
       ))}
 
-      {/* Digital LED Display Recessed Bezel Window */}
+      {/* Dual Digital LED Display Recessed Bezel Window */}
       <mesh position={[0, 0.65, 0.496]}>
         <boxGeometry args={[0.96, 0.34, 0.015]} />
-        <meshStandardMaterial metalness={0.2} roughness={0.8} color="#0a0c10" />
+        <meshStandardMaterial metalness={0.3} roughness={0.8} color="#020617" />
       </mesh>
 
-      {/* Digital LED Segment Display (Emissive dark red filter glass) */}
+      {/* Digital LED Displays Glass Panel */}
       <mesh position={[0, 0.65, 0.505]}>
         <planeGeometry args={[0.92, 0.3]} />
-        <meshStandardMaterial roughness={0.2} metalness={0.1} color="#1a0505" />
+        <meshStandardMaterial roughness={0.2} metalness={0.1} color="#1c0505" />
       </mesh>
 
-      {/* Physical 3D LED Digital Numbers */}
-      <Html position={[0, 0.65, 0.51]} transform distanceFactor={3.2} occlude>
-        <div className="flex w-64 items-center justify-between bg-black/95 px-3 py-2 rounded font-mono select-none pointer-events-none border border-red-950/60 shadow-inner">
+      {/* Physical 3D Dual 7-Segment LED Displays */}
+      <Html position={[0, 0.65, 0.51]} transform distanceFactor={2.9} occlude>
+        <div className="flex w-64 items-center justify-between bg-black/95 px-3 py-2 rounded font-mono select-none pointer-events-none border border-red-900/60 shadow-inner">
+          {/* Voltage Display (Brilliant Red LED) */}
           <div className="flex flex-col items-start">
-            <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">DC VOLTAGE</span>
+            <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold">DC VOLTAGE</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold tracking-widest text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.9)]">
+              <span className="text-2xl font-black tracking-widest text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.95)]">
                 {isOn ? voltage.toFixed(1).padStart(4, "0") : "00.0"}
               </span>
-              <span className="text-xs font-bold text-red-600">V</span>
+              <span className="text-xs font-bold text-red-500">V</span>
             </div>
           </div>
-          <div className="h-8 w-[1px] bg-zinc-800" />
+          <div className="h-8 w-[1px] bg-zinc-700" />
+          {/* Current Display (Bright Emerald LED) */}
           <div className="flex flex-col items-end">
-            <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">CURRENT LIMIT</span>
+            <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold">CURRENT LIMIT</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold tracking-widest text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
+              <span className="text-xl font-black tracking-widest text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]">
                 {isOn ? "5.00" : "0.00"}
               </span>
-              <span className="text-xs font-bold text-emerald-600">A</span>
+              <span className="text-xs font-bold text-emerald-500">A</span>
             </div>
           </div>
         </div>
@@ -120,11 +139,11 @@ export function PowerSupply3D({
       {/* CV (Constant Voltage) - Green LED */}
       <group position={[-0.42, 0.48, 0.5]}>
         <mesh>
-          <cylinderGeometry args={[0.018, 0.018, 0.02, 16]} />
+          <cylinderGeometry args={[0.02, 0.02, 0.02, 16]} />
           <meshStandardMaterial
             color={isOn ? "#22c55e" : "#14532d"}
             emissive={isOn ? "#22c55e" : "#000000"}
-            emissiveIntensity={isOn ? 1.5 : 0}
+            emissiveIntensity={isOn ? 2.0 : 0}
             roughness={0.2}
           />
         </mesh>
@@ -133,17 +152,12 @@ export function PowerSupply3D({
       {/* CC (Constant Current Limit) - Amber LED */}
       <group position={[-0.32, 0.48, 0.5]}>
         <mesh>
-          <cylinderGeometry args={[0.018, 0.018, 0.02, 16]} />
-          <meshStandardMaterial
-            color="#78350f"
-            emissive="#000000"
-            emissiveIntensity={0}
-            roughness={0.2}
-          />
+          <cylinderGeometry args={[0.02, 0.02, 0.02, 16]} />
+          <meshStandardMaterial color="#78350f" emissive="#000000" roughness={0.2} />
         </mesh>
       </group>
 
-      {/* Rotary Voltage Knob (Coarse) - Clickable & Rotatable */}
+      {/* Rotary Voltage Knob (Coarse) - Interactive */}
       <group
         ref={coarseKnobRef}
         position={[-0.25, 0.32, 0.51]}
@@ -156,12 +170,10 @@ export function PowerSupply3D({
           onVoltageChange?.(nextV);
         }}
       >
-        {/* Knob fluted body */}
         <mesh rotation={[Math.PI / 2, coarseAngle, 0]}>
           <cylinderGeometry args={[0.08, 0.085, 0.065, 24]} />
-          <meshStandardMaterial metalness={0.8} roughness={0.25} color="#334155" />
+          <meshStandardMaterial metalness={0.8} roughness={0.25} color="#1e293b" />
         </mesh>
-        {/* White pointer groove notch */}
         <mesh position={[Math.sin(coarseAngle) * 0.06, Math.cos(coarseAngle) * 0.06, 0.034]}>
           <boxGeometry args={[0.012, 0.03, 0.01]} />
           <meshBasicMaterial color="#ffffff" />
@@ -183,7 +195,7 @@ export function PowerSupply3D({
       >
         <mesh rotation={[Math.PI / 2, fineAngle, 0]}>
           <cylinderGeometry args={[0.06, 0.065, 0.055, 24]} />
-          <meshStandardMaterial metalness={0.8} roughness={0.25} color="#334155" />
+          <meshStandardMaterial metalness={0.8} roughness={0.25} color="#1e293b" />
         </mesh>
         <mesh position={[Math.sin(fineAngle) * 0.045, Math.cos(fineAngle) * 0.045, 0.029]}>
           <boxGeometry args={[0.01, 0.025, 0.01]} />
@@ -191,7 +203,7 @@ export function PowerSupply3D({
         </mesh>
       </group>
 
-      {/* Power Rocker Switch */}
+      {/* Power Rocker Switch with Illuminated Neon Red Lamp */}
       <group position={[0.42, 0.32, 0.505]} onClick={handleTogglePower}>
         <mesh position={[0, 0, 0]}>
           <boxGeometry args={[0.08, 0.11, 0.02]} />
@@ -202,7 +214,7 @@ export function PowerSupply3D({
           <meshStandardMaterial
             color={isOn ? "#ef4444" : "#450a0a"}
             emissive={isOn ? "#ef4444" : "#000000"}
-            emissiveIntensity={isOn ? 0.5 : 0}
+            emissiveIntensity={isOn ? 0.8 : 0}
             roughness={0.3}
           />
         </mesh>

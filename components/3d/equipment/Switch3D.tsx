@@ -38,7 +38,7 @@ export function Switch3D({
 
   const handleBladeClick = (e: any) => {
     e.stopPropagation();
-    labAudio.playSwitchClack(isOpen); // if currently open, we are closing it!
+    labAudio.playSwitchClack(isOpen);
     onToggleSwitch?.();
   };
 
@@ -47,13 +47,13 @@ export function Switch3D({
 
   return (
     <group position={component.position} rotation={component.rotation}>
-      {/* Heavy bakelite / porcelain base plate with beveled edges */}
+      {/* Heavy Glazed White Porcelain Insulator Base */}
       <mesh position={[0, 0.04, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, 0.08, 0.6]} />
-        <meshStandardMaterial roughness={0.7} metalness={0.15} color="#18181b" />
+        <meshStandardMaterial roughness={0.2} metalness={0.05} color="#f8fafc" />
       </mesh>
 
-      {/* Mounting screw counterbores on four corners */}
+      {/* Brass Corner Mounting Studs */}
       {[
         [-0.52, 0.081, -0.22],
         [0.52, 0.081, -0.22],
@@ -61,45 +61,43 @@ export function Switch3D({
         [0.52, 0.081, 0.22],
       ].map(([x, y, z], i) => (
         <mesh key={`screw-${i}`} position={[x, y, z]}>
-          <cylinderGeometry args={[0.02, 0.02, 0.01, 12]} />
-          <meshStandardMaterial metalness={0.9} roughness={0.3} color="#71717a" />
+          <cylinderGeometry args={[0.02, 0.02, 0.015, 12]} />
+          <meshStandardMaterial metalness={0.9} roughness={0.2} color="#eab308" />
         </mesh>
       ))}
 
-      {/* Engraved brass identification plate on base */}
+      {/* Polished Machined Brass Nameplate */}
       <group position={[0, 0.082, -0.18]}>
         <mesh>
           <planeGeometry args={[0.55, 0.14]} />
-          <meshStandardMaterial metalness={0.85} roughness={0.3} color="#ca8a04" />
+          <meshStandardMaterial metalness={0.92} roughness={0.25} color="#ca8a04" />
         </mesh>
       </group>
 
-      {/* Left Hinge Pillar (solid machined brass block) */}
+      {/* Left Hinge Pillar (Solid Machined Brass Block) */}
       <mesh position={[-0.35, 0.12, 0]}>
         <boxGeometry args={[0.1, 0.09, 0.12]} />
-        <meshStandardMaterial metalness={0.88} roughness={0.22} color="#eab308" />
+        <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
       </mesh>
 
-      {/* Right Contact Spring Jaw Clip */}
+      {/* Right Contact Spring Jaw Clip (Dual Phosphor Bronze Leaf Springs) */}
       <group position={[0.35, 0.13, 0]}>
-        {/* Left spring leaf */}
         <mesh position={[0, 0, -0.025]}>
           <boxGeometry args={[0.04, 0.12, 0.015]} />
-          <meshStandardMaterial metalness={0.88} roughness={0.22} color="#eab308" />
+          <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
         </mesh>
-        {/* Right spring leaf */}
         <mesh position={[0, 0, 0.025]}>
           <boxGeometry args={[0.04, 0.12, 0.015]} />
-          <meshStandardMaterial metalness={0.88} roughness={0.22} color="#eab308" />
+          <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
         </mesh>
-        {/* Spring flare lips at top */}
+        {/* Flared Entry Lips */}
         <mesh position={[-0.01, 0.065, -0.03]} rotation={[0, 0, 0.2]}>
           <boxGeometry args={[0.02, 0.02, 0.015]} />
-          <meshStandardMaterial metalness={0.88} roughness={0.22} color="#eab308" />
+          <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
         </mesh>
         <mesh position={[-0.01, 0.065, 0.03]} rotation={[0, 0, 0.2]}>
           <boxGeometry args={[0.02, 0.02, 0.015]} />
-          <meshStandardMaterial metalness={0.88} roughness={0.22} color="#eab308" />
+          <meshStandardMaterial metalness={0.92} roughness={0.2} color="#eab308" />
         </mesh>
       </group>
 
@@ -117,41 +115,41 @@ export function Switch3D({
           setHovered(false);
         }}
       >
-        {/* Copper knife blade */}
+        {/* Solid Heavy Copper Knife Blade */}
         <mesh position={[0.35, 0.015, 0]} castShadow>
           <boxGeometry args={[0.72, 0.032, 0.018]} />
           <meshStandardMaterial
-            metalness={0.92}
-            roughness={hovered ? 0.15 : 0.25}
+            metalness={0.94}
+            roughness={hovered ? 0.12 : 0.2}
             color={hovered ? "#fbbf24" : "#b45309"}
             emissive={hovered ? "#b45309" : "#000000"}
             emissiveIntensity={hovered ? 0.35 : 0}
           />
         </mesh>
 
-        {/* Lathe-turned insulated wooden handle */}
+        {/* Lathe-Turned Insulated Hardwood Handle */}
         <group position={[0.82, 0.015, 0]}>
           <mesh rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.036, 0.032, 0.22, 16]} />
             <meshStandardMaterial
-              roughness={0.5}
+              roughness={0.4}
               metalness={0.1}
-              color={hovered ? "#78350f" : "#451a03"}
+              color={hovered ? "#92400e" : "#78350f"}
               emissive={hovered ? "#451a03" : "#000000"}
-              emissiveIntensity={hovered ? 0.2 : 0}
+              emissiveIntensity={hovered ? 0.25 : 0}
             />
           </mesh>
-          {/* Handle brass ferrule cap */}
+          {/* Polished brass ferrule collar */}
           <mesh position={[-0.1, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.038, 0.038, 0.02, 16]} />
-            <meshStandardMaterial metalness={0.85} roughness={0.3} color="#eab308" />
+            <meshStandardMaterial metalness={0.9} roughness={0.2} color="#eab308" />
           </mesh>
         </group>
 
-        {/* Pivot hinge pin rivet */}
+        {/* Pivot Hinge Pin Rivet */}
         <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.028, 0.028, 0.07, 16]} />
-          <meshStandardMaterial metalness={0.85} roughness={0.25} color="#d4d4d8" />
+          <meshStandardMaterial metalness={0.9} roughness={0.2} color="#cbd5e1" />
         </mesh>
       </group>
 
