@@ -2,8 +2,21 @@
 
 import { useRef } from "react";
 import * as THREE from "three";
+import { WallLightSwitches3D } from "./equipment/WallLightSwitches3D";
 
-export function ChemistryRoom3D() {
+interface RoomProps {
+  ceilingLightsOn?: boolean;
+  taskLightOn?: boolean;
+  onToggleCeiling?: () => void;
+  onToggleTask?: () => void;
+}
+
+export function ChemistryRoom3D({
+  ceilingLightsOn = true,
+  taskLightOn = true,
+  onToggleCeiling = () => {},
+  onToggleTask = () => {},
+}: RoomProps) {
   const roomRef = useRef<THREE.Group>(null);
 
   return (
@@ -21,21 +34,23 @@ export function ChemistryRoom3D() {
         />
       </mesh>
 
-      {/* Ceiling: Clean White Suspended Acoustic Grid with Troffers */}
+      {/* Ceiling: Clean White Suspended Acoustic Grid */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 3.8, 0]}>
         <planeGeometry args={[13.5, 15.5]} />
         <meshStandardMaterial color="#f8fafc" roughness={0.9} />
       </mesh>
 
-      {/* Six Recessed 600x600 LED Troffers (Warm white 4500K illumination) */}
+      {/* Six Recessed 600x600 LED Troffers (Toggled by wall switch) */}
       {[-3, 0, 3].map((x, xi) =>
         [-3.5, 3.5].map((z, zi) => (
           <group key={`${xi}-${zi}`} position={[x, 3.79, z]}>
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <planeGeometry args={[0.7, 1.3]} />
-              <meshBasicMaterial color="#ffffff" />
+              <meshBasicMaterial color={ceilingLightsOn ? "#ffffff" : "#475569"} />
             </mesh>
-            <pointLight position={[0, -0.2, 0]} intensity={1.6} distance={7.5} color="#fffbeb" />
+            {ceilingLightsOn && (
+              <pointLight position={[0, -0.2, 0]} intensity={1.7} distance={8.5} color="#fffbeb" />
+            )}
           </group>
         ))
       )}
@@ -94,10 +109,9 @@ export function ChemistryRoom3D() {
           <meshStandardMaterial color="#f8fafc" roughness={0.5} metalness={0.08} />
         </mesh>
 
-        {/* Brushed Stainless Drawer Pull Handles (Repeated Front & Back) */}
+        {/* Brushed Stainless Drawer Pull Handles */}
         {[-1.6, -0.8, 0, 0.8, 1.6].map((x, idx) => (
           <group key={idx}>
-            {/* Front side handles */}
             <mesh position={[x, 0.72, 0.835]}>
               <boxGeometry args={[0.18, 0.015, 0.025]} />
               <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
@@ -106,7 +120,6 @@ export function ChemistryRoom3D() {
               <boxGeometry args={[0.18, 0.015, 0.025]} />
               <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
             </mesh>
-            {/* Back side handles */}
             <mesh position={[x, 0.72, -0.835]}>
               <boxGeometry args={[0.18, 0.015, 0.025]} />
               <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
@@ -120,14 +133,12 @@ export function ChemistryRoom3D() {
             <boxGeometry args={[3.8, 0.28, 0.18]} />
             <meshStandardMaterial color="#334155" roughness={0.4} metalness={0.6} />
           </mesh>
-          {/* Dual AC Sockets & Gas valves */}
           {[-1.2, -0.4, 0.4, 1.2].map((sx, sxi) => (
             <group key={sxi} position={[sx, 0, 0.095]}>
               <mesh>
                 <boxGeometry args={[0.07, 0.07, 0.01]} />
                 <meshStandardMaterial color="#f8fafc" roughness={0.3} />
               </mesh>
-              {/* Blue gas valve spigot */}
               <mesh position={[0.08, 0.05, 0.02]} rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.01, 0.01, 0.05, 12]} />
                 <meshStandardMaterial color="#2563eb" roughness={0.3} metalness={0.7} />
@@ -138,15 +149,13 @@ export function ChemistryRoom3D() {
       </group>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. LEFT WALL: WET CHEMISTRY & REAGENT BENCH (X = -5.2 m)
+          3. LEFT WALL: WET CHEMISTRY & REAGENT BENCH (X = -5.3 m)
          ───────────────────────────────────────────────────────────── */}
       <group position={[-5.3, 0, 0]}>
-        {/* Countertop */}
         <mesh position={[0, 0.91, 0]} castShadow receiveShadow>
           <boxGeometry args={[1.2, 0.04, 6.5]} />
           <meshStandardMaterial color="#1e293b" roughness={0.35} metalness={0.1} />
         </mesh>
-        {/* Cabinet base */}
         <mesh position={[0, 0.43, 0]}>
           <boxGeometry args={[1.1, 0.86, 6.4]} />
           <meshStandardMaterial color="#f1f5f9" roughness={0.5} />
@@ -158,7 +167,6 @@ export function ChemistryRoom3D() {
             <boxGeometry args={[0.65, 0.32, 0.55]} />
             <meshStandardMaterial color="#64748b" roughness={0.2} metalness={0.9} />
           </mesh>
-          {/* Tall Swivel Gooseneck Water Faucet */}
           <mesh position={[0.22, 0.22, 0]}>
             <cylinderGeometry args={[0.012, 0.012, 0.32, 16]} />
             <meshStandardMaterial color="#e2e8f0" roughness={0.15} metalness={0.95} />
@@ -171,7 +179,6 @@ export function ChemistryRoom3D() {
 
         {/* Wall Reagent Shelving (2 Tiers with Chemical Bottles) */}
         <group position={[-0.45, 1.8, 1.2]}>
-          {/* Wooden / Steel Shelves */}
           <mesh position={[0, 0, 0]}>
             <boxGeometry args={[0.26, 0.02, 3.2]} />
             <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.5} />
@@ -204,22 +211,19 @@ export function ChemistryRoom3D() {
       </group>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. RIGHT WALL: ANALYTICAL FUME HOOD (X = +5.0 m, Z = 0)
+          4. RIGHT WALL: ANALYTICAL FUME HOOD (X = +5.1 m, Z = 0)
          ───────────────────────────────────────────────────────────── */}
       <group position={[5.1, 0, 0]}>
-        {/* Exterior Hood Body */}
         <mesh position={[0, 1.8, 0]} castShadow>
           <boxGeometry args={[1.4, 2.6, 2.4]} />
           <meshStandardMaterial color="#e2e8f0" roughness={0.4} metalness={0.2} />
         </mesh>
-
-        {/* Interior Chamber Cutout */}
         <mesh position={[-0.15, 1.45, 0]}>
           <boxGeometry args={[1.05, 1.25, 2.1]} />
           <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.4} />
         </mesh>
 
-        {/* Tempered Safety Glass Sash (Partially open) */}
+        {/* Sliding Tempered Glass Sash */}
         <mesh position={[-0.62, 1.72, 0]}>
           <boxGeometry args={[0.02, 0.68, 2.1]} />
           <meshPhysicalMaterial
@@ -232,10 +236,8 @@ export function ChemistryRoom3D() {
           />
         </mesh>
 
-        {/* Internal Hood Lighting */}
         <pointLight position={[-0.1, 1.95, 0]} intensity={2.4} color="#fef08a" distance={4} />
 
-        {/* Stainless Exhaust Ducting to ceiling */}
         <mesh position={[0, 3.3, 0]}>
           <cylinderGeometry args={[0.22, 0.22, 0.8, 24]} />
           <meshStandardMaterial color="#94a3b8" roughness={0.2} metalness={0.88} />
@@ -243,21 +245,18 @@ export function ChemistryRoom3D() {
       </group>
 
       {/* ─────────────────────────────────────────────────────────────
-          5. BACK WALL: CAMPUS WINDOWS & SAFETY STATION
+          5. BACK WALL: WINDOWS, DUAL LIGHT SWITCHES & SAFETY STATION
          ───────────────────────────────────────────────────────────── */}
-      {/* Tall Divided Campus Windows (X = 0, Z = -6.95 m) */}
+      {/* Tall Divided Campus Windows */}
       <group position={[0, 2.1, -6.96]}>
-        {/* Window Aluminum Frame */}
         <mesh>
           <boxGeometry args={[5.2, 2.3, 0.04]} />
           <meshStandardMaterial color="#1e293b" roughness={0.2} metalness={0.8} />
         </mesh>
-        {/* Daylight Window Glass */}
         <mesh position={[0, 0, 0.01]}>
           <planeGeometry args={[5.0, 2.1]} />
           <meshBasicMaterial color="#dbeafe" />
         </mesh>
-        {/* Direct Natural Sunlight Streaming In */}
         <directionalLight
           position={[0, 4.5, -4]}
           intensity={1.8}
@@ -267,14 +266,20 @@ export function ChemistryRoom3D() {
         />
       </group>
 
-      {/* Emergency Eye Wash & Drench Shower Safety Station (X = 4.2m, Z = -6.8m) */}
+      {/* Interactive Dual Wall Light Switches near Door */}
+      <WallLightSwitches3D
+        ceilingLightsOn={ceilingLightsOn}
+        taskLightOn={taskLightOn}
+        onToggleCeiling={onToggleCeiling}
+        onToggleTask={onToggleTask}
+      />
+
+      {/* Emergency Eye Wash & Drench Shower Safety Station */}
       <group position={[4.2, 0, -6.7]}>
-        {/* Overhead Drench Shower Head */}
         <mesh position={[0, 2.5, 0.4]}>
           <cylinderGeometry args={[0.12, 0.16, 0.06, 24]} />
           <meshStandardMaterial color="#eab308" roughness={0.3} metalness={0.7} />
         </mesh>
-        {/* Stainless Steel Pull Rod */}
         <mesh position={[0.12, 1.9, 0.4]}>
           <cylinderGeometry args={[0.005, 0.005, 1.1, 12]} />
           <meshStandardMaterial color="#e2e8f0" roughness={0.1} metalness={0.95} />
@@ -283,19 +288,17 @@ export function ChemistryRoom3D() {
           <torusGeometry args={[0.04, 0.008, 12, 24]} />
           <meshStandardMaterial color="#eab308" roughness={0.3} />
         </mesh>
-        {/* Dual Aerated Eye Wash Bowl */}
         <mesh position={[0, 1.05, 0.35]}>
           <cylinderGeometry args={[0.16, 0.14, 0.12, 24]} />
           <meshStandardMaterial color="#e2e8f0" roughness={0.2} metalness={0.9} />
         </mesh>
-        {/* Yellow Floor Hazard Boundary Tape */}
         <mesh position={[0, 0.002, 0.35]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[1.1, 1.1]} />
           <meshBasicMaterial color="#eab308" />
         </mesh>
       </group>
 
-      {/* Framed Scientific Periodic Table of the Elements (X = -3.8m, Z = -6.95m) */}
+      {/* Framed Scientific Periodic Table */}
       <group position={[-3.8, 2.1, -6.95]}>
         <mesh>
           <boxGeometry args={[2.8, 1.6, 0.03]} />
@@ -307,13 +310,12 @@ export function ChemistryRoom3D() {
         </mesh>
       </group>
 
-      {/* Laboratory Exit Door (X = -5.4m, Z = -6.95m) */}
+      {/* Laboratory Exit Door */}
       <group position={[-5.4, 1.1, -6.95]}>
         <mesh>
           <boxGeometry args={[0.95, 2.2, 0.05]} />
           <meshStandardMaterial color="#334155" roughness={0.5} />
         </mesh>
-        {/* Lever Handle */}
         <mesh position={[0.35, 0, 0.04]}>
           <boxGeometry args={[0.12, 0.02, 0.03]} />
           <meshStandardMaterial color="#e2e8f0" roughness={0.15} metalness={0.9} />

@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { calculateTitrationEquilibrium, calculateUnknownMolarity } from "@/lib/chemistry/engine";
+import { mixSolutions } from "@/lib/chemistry/solutions";
 import { TitrationTrial } from "@/lib/chemistry/types";
+import { LabVesselState } from "@/components/chemistry/equipment/InteractiveVessels";
 import { ChemistryHUD } from "@/components/chemistry/ChemistryHUD";
 import { ChemistryNotebook } from "@/components/chemistry/ChemistryNotebook";
 import { ChemistryAIAssistant } from "@/components/chemistry/ChemistryAIAssistant";
@@ -27,15 +29,94 @@ const ChemistryScene = dynamic(
   }
 );
 
+const INITIAL_VESSELS: LabVesselState[] = [
+  {
+    id: "beaker-cu",
+    name: "Copper(II) Sulfate",
+    type: "beaker",
+    capacityMl: 100,
+    currentVolumeMl: 45,
+    solutionId: "cuso4",
+    solutionColor: "#0284c7", // Vivid azure blue
+    pH: 4.2,
+    position: [-0.6, 0.005, 0.35],
+  },
+  {
+    id: "beaker-acid",
+    name: "Hydrochloric Acid",
+    type: "beaker",
+    capacityMl: 100,
+    currentVolumeMl: 50,
+    solutionId: "hcl",
+    solutionColor: "#f8fafc", // Clear
+    pH: 1.0,
+    position: [-0.36, 0.005, 0.35],
+  },
+  {
+    id: "beaker-universal",
+    name: "Universal Indicator",
+    type: "dropper",
+    capacityMl: 50,
+    currentVolumeMl: 25,
+    solutionId: "universal",
+    solutionColor: "#16a34a", // Green
+    pH: 7.0,
+    indicator: "universal",
+    position: [-0.15, 0.005, 0.35],
+  },
+  {
+    id: "beaker-base",
+    name: "Sodium Hydroxide",
+    type: "beaker",
+    capacityMl: 100,
+    currentVolumeMl: 50,
+    solutionId: "naoh",
+    solutionColor: "#f8fafc",
+    pH: 13.0,
+    position: [0.36, 0.005, 0.35],
+  },
+  {
+    id: "cylinder-water",
+    name: "Deionized Water",
+    type: "cylinder",
+    capacityMl: 50,
+    currentVolumeMl: 30,
+    solutionId: "water",
+    solutionColor: "#f8fafc",
+    pH: 7.0,
+    position: [0.62, 0.005, 0.35],
+  },
+  {
+    id: "hotplate-beaker",
+    name: "Reaction Beaker (Hotplate)",
+    type: "beaker",
+    capacityMl: 100,
+    currentVolumeMl: 35,
+    solutionId: "water",
+    solutionColor: "#f8fafc",
+    pH: 7.0,
+    position: [-0.95, 0.105, -0.19],
+  },
+];
+
 export default function ChemistryLabPage() {
-  // Stoichiometry & Dispensing State
+  // Stoichiometry & Titration State
   const [dispensedMl, setDispensedMl] = useState(0.0);
   const [hasIndicator, setHasIndicator] = useState(false);
-  const [stopcockAngle, setStopcockAngle] = useState(0); // 0 = Closed, 45 = Dropwise, 90 = Stream
+  const [stopcockAngle, setStopcockAngle] = useState(0);
   const [isStopcockOpen, setIsStopcockOpen] = useState(false);
   const [flowRateMode, setFlowRateMode] = useState<"closed" | "dropwise" | "stream">("closed");
 
-  // Interaction & UI State
+  // Room & Lighting State
+  const [ceilingLightsOn, setCeilingLightsOn] = useState(true);
+  const [taskLightOn, setTaskLightOn] = useState(true);
+
+  // Vessel Sandbox & Pouring State
+  const [vessels, setVessels] = useState<LabVesselState[]>(INITIAL_VESSELS);
+  const [heldVesselId, setHeldVesselId] = useState<string | null>(null);
+  const [isPouring, setIsPouring] = useState(false);
+
+  // Inspection & UI State
   const [isInspecting, setIsInspecting] = useState(false);
   const [hoverLabel, setHoverLabel] = useState<string | null>(null);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
@@ -44,11 +125,11 @@ export default function ChemistryLabPage() {
   const [trials, setTrials] = useState<TitrationTrial[]>([]);
 
   // Fixed Standardized Chemistry Parameters
-  const analyteVolumeMl = 25.0; // 25.00 mL HCl
-  const analyteConcentration = 0.100; // 0.1000 M
-  const titrantConcentration = 0.100; // 0.1000 M NaOH
+  const analyteVolumeMl = 25.0;
+  const analyteConcentration = 0.100;
+  const titrantConcentration = 0.100;
 
-  // Compute live equilibrium state from physics/chemical engine
+  // Compute live equilibrium state from chemical engine
   const equilibrium = useMemo(() => {
     return calculateTitrationEquilibrium(
       dispensedMl,
@@ -68,7 +149,7 @@ export default function ChemistryLabPage() {
     return 5;
   }, [isInspecting, hasIndicator, dispensedMl, equilibrium.isEndpoint, trials.length]);
 
-  // Continuous fluid discharge when stopcock is open
+  // Continuous fluid discharge when burette stopcock is open
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
 
@@ -110,11 +191,15 @@ export default function ChemistryLabPage() {
     };
   }, [isStopcockOpen, flowRateMode]);
 
-  // Keyboard shortcut listener ('C' toggles inspection mode)
+  // Keyboard shortcut listener ('C' inspect, 'R' place down held vessel)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "KeyC") {
         setIsInspecting((prev) => !prev);
+      }
+      if (e.code === "KeyR") {
+        setHeldVesselId(null);
+        chemistryAudio.playGlassClink();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -131,7 +216,7 @@ export default function ChemistryLabPage() {
     return () => window.removeEventListener("click", handleFirstClick);
   }, []);
 
-  // Handlers
+  // Handlers for Titration
   const handleToggleStopcock = useCallback(() => {
     chemistryAudio.playStopcockClick();
     if (isStopcockOpen) {
@@ -162,6 +247,72 @@ export default function ChemistryLabPage() {
     setFlowRateMode("closed");
     setDispensedMl(0.0);
   }, []);
+
+  // Vessel Picking & Pouring Sandbox Handlers
+  const handlePickUpVessel = useCallback((id: string) => {
+    chemistryAudio.playGlassClink();
+    setHeldVesselId(id);
+  }, []);
+
+  const handleDropVessel = useCallback(() => {
+    chemistryAudio.playGlassClink();
+    setHeldVesselId(null);
+  }, []);
+
+  const handlePourIntoVessel = useCallback(
+    (targetId: string) => {
+      if (!heldVesselId || heldVesselId === targetId) return;
+
+      const sourceVessel = vessels.find((v) => v.id === heldVesselId);
+      const targetVessel = vessels.find((v) => v.id === targetId);
+      if (!sourceVessel || !targetVessel || sourceVessel.currentVolumeMl <= 0) return;
+
+      // Animate pouring motion and play sound
+      setIsPouring(true);
+      chemistryAudio.playLiquidDrop();
+
+      const pourAmountMl = Math.min(15, sourceVessel.currentVolumeMl);
+
+      setTimeout(() => {
+        setVessels((prev) => {
+          return prev.map((v) => {
+            if (v.id === heldVesselId) {
+              return {
+                ...v,
+                currentVolumeMl: Math.max(0, v.currentVolumeMl - pourAmountMl),
+              };
+            }
+            if (v.id === targetId) {
+              const mixed = mixSolutions(
+                {
+                  volumeMl: pourAmountMl,
+                  solutionId: sourceVessel.solutionId,
+                  indicator: sourceVessel.indicator,
+                },
+                {
+                  volumeMl: v.currentVolumeMl,
+                  solutionId: v.solutionId,
+                  indicator: v.indicator,
+                }
+              );
+              return {
+                ...v,
+                currentVolumeMl: mixed.volumeMl,
+                solutionId: mixed.solutionId,
+                pH: mixed.pH,
+                solutionColor: mixed.color,
+                indicator: mixed.indicator,
+              };
+            }
+            return v;
+          });
+        });
+
+        setIsPouring(false);
+      }, 650);
+    },
+    [heldVesselId, vessels]
+  );
 
   const handleInteract = useCallback(() => {
     if (!isInspecting) {
@@ -201,6 +352,8 @@ export default function ChemistryLabPage() {
     setTrials((prev) => [...prev, newTrial]);
   }, [dispensedMl, analyteVolumeMl, titrantConcentration, equilibrium, trials.length]);
 
+  const heldVessel = vessels.find((v) => v.id === heldVesselId) || null;
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       {/* 3D WebGL Canvas Layer */}
@@ -213,8 +366,17 @@ export default function ChemistryLabPage() {
         isStopcockOpen={isStopcockOpen}
         isInspecting={isInspecting}
         highlightedApparatus={highlightedApparatus}
+        ceilingLightsOn={ceilingLightsOn}
+        taskLightOn={taskLightOn}
+        vessels={vessels}
+        heldVesselId={heldVesselId}
+        isPouring={isPouring}
         onToggleStopcock={handleToggleStopcock}
         onAddIndicator={handleAddIndicator}
+        onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
+        onToggleTaskLight={() => setTaskLightOn((prev) => !prev)}
+        onPickUpVessel={handlePickUpVessel}
+        onPourIntoVessel={handlePourIntoVessel}
         onHoverObject={setHoverLabel}
         onInteract={handleInteract}
       />
@@ -232,6 +394,10 @@ export default function ChemistryLabPage() {
         hasIndicator={hasIndicator}
         isStopcockOpen={isStopcockOpen}
         flowRateMode={flowRateMode}
+        ceilingLightsOn={ceilingLightsOn}
+        onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
+        heldVessel={heldVessel}
+        onDropVessel={handleDropVessel}
         onToggleStopcock={handleToggleStopcock}
         onDispenseSingleDrop={handleDispenseSingleDrop}
         onAddIndicator={handleAddIndicator}

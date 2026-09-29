@@ -13,9 +13,13 @@ import {
   Pause,
   RotateCcw,
   Sparkles,
+  Sun,
+  Moon,
+  ArrowDownCircle,
 } from "lucide-react";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 import { useState } from "react";
+import { LabVesselState } from "./equipment/InteractiveVessels";
 
 interface ChemistryHUDProps {
   isInspecting: boolean;
@@ -29,6 +33,10 @@ interface ChemistryHUDProps {
   hasIndicator: boolean;
   isStopcockOpen: boolean;
   flowRateMode: "closed" | "dropwise" | "stream";
+  ceilingLightsOn: boolean;
+  onToggleCeilingLights: () => void;
+  heldVessel: LabVesselState | null;
+  onDropVessel: () => void;
   onToggleStopcock: () => void;
   onDispenseSingleDrop: () => void;
   onAddIndicator: () => void;
@@ -50,6 +58,10 @@ export function ChemistryHUD({
   hasIndicator,
   isStopcockOpen,
   flowRateMode,
+  ceilingLightsOn,
+  onToggleCeilingLights,
+  heldVessel,
+  onDropVessel,
   onToggleStopcock,
   onDispenseSingleDrop,
   onAddIndicator,
@@ -79,19 +91,32 @@ export function ChemistryHUD({
               MAGE LABS // CHEMISTRY 02
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 uppercase">
-              FIRST-PERSON 1:1
+              SANDBOX & EXPERIMENT
             </span>
           </div>
           <h1 className="font-display text-sm sm:text-base font-bold text-zinc-300 uppercase tracking-tight">
-            EXP 01: VOLUMETRIC ACID–BASE TITRATION
+            EXP 01: VOLUMETRIC ACID–BASE TITRATION & CHEMICAL BENCH
           </h1>
           <p className="text-[11px] font-mono text-zinc-500">
-            HCl (0.100 M) + NaOH (0.100 M) → NaCl + H₂O
+            Interactive Beakers, Hotplate Stirrer, Centrifuge, Balance, & Titration
           </p>
         </div>
 
         {/* Top-right: Controls & Navigation */}
         <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Light Toggle */}
+          <button
+            onClick={onToggleCeilingLights}
+            className={`p-1.5 rounded border text-xs font-mono transition-all backdrop-blur-md ${
+              ceilingLightsOn
+                ? "bg-zinc-900 border-zinc-700 text-amber-400"
+                : "bg-zinc-950 border-zinc-800 text-zinc-500"
+            }`}
+            title="Toggle Room Lights"
+          >
+            {ceilingLightsOn ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+
           {/* Mode Switcher: Walk vs Inspect */}
           <button
             onClick={onToggleInspect}
@@ -147,16 +172,36 @@ export function ChemistryHUD({
         {/* Reticle Dot */}
         <div
           className={`h-2.5 w-2.5 rounded-full transition-all duration-200 border ${
-            hoverLabel
+            hoverLabel || heldVessel
               ? "bg-white scale-150 border-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
               : "bg-white/40 border-white/60"
           }`}
         />
 
         {/* Hover Prompt */}
-        {hoverLabel && (
+        {hoverLabel && !heldVessel && (
           <div className="px-3 py-1 rounded bg-black/80 border border-zinc-700 text-white font-mono text-xs tracking-wider backdrop-blur-md animate-fade-in">
             {hoverLabel}
+          </div>
+        )}
+
+        {/* Held Vessel Status Banner */}
+        {heldVessel && (
+          <div className="flex items-center gap-3 px-4 py-2 bg-zinc-950/95 border border-zinc-700 rounded-md backdrop-blur-md shadow-2xl pointer-events-auto">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-mono text-xs text-white">
+              HOLDING: <strong className="text-sky-300">{heldVessel.name}</strong> ({heldVessel.currentVolumeMl.toFixed(0)} mL, pH {heldVessel.pH.toFixed(1)})
+            </span>
+            <span className="text-[11px] font-mono text-zinc-400">
+              · [CLICK TARGET BEAKER TO POUR]
+            </span>
+            <button
+              onClick={onDropVessel}
+              className="ml-2 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-mono rounded flex items-center gap-1"
+            >
+              <ArrowDownCircle className="h-3 w-3" />
+              <span>PLACE BACK [R]</span>
+            </button>
           </div>
         )}
       </div>
@@ -215,7 +260,6 @@ export function ChemistryHUD({
         {/* Bottom-Center / Right: Interactive Titration Controls (when inspecting) */}
         {isInspecting && (
           <div className="flex flex-wrap items-center gap-2 pointer-events-auto bg-zinc-950/90 border border-zinc-800 p-2 rounded backdrop-blur-md">
-            {/* Add indicator button */}
             {!hasIndicator && (
               <button
                 onClick={onAddIndicator}
@@ -226,7 +270,6 @@ export function ChemistryHUD({
               </button>
             )}
 
-            {/* Dispense single drop */}
             <button
               onClick={onDispenseSingleDrop}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-700 hover:border-white text-zinc-200 hover:text-white text-xs font-mono transition-all"
@@ -235,7 +278,6 @@ export function ChemistryHUD({
               <span>SINGLE DROP (+0.05 mL)</span>
             </button>
 
-            {/* Toggle continuous stopcock flow */}
             <button
               onClick={onToggleStopcock}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
@@ -257,7 +299,6 @@ export function ChemistryHUD({
               )}
             </button>
 
-            {/* Reset Titration */}
             <button
               onClick={onResetTitration}
               className="p-1.5 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-400 hover:text-white transition-all"
