@@ -252,17 +252,29 @@ export function PlayerController({
     const playerPos = camera.position;
     const distToTitration = playerPos.distanceTo(new THREE.Vector3(0, 0.94, 0));
     const distToReagents = playerPos.distanceTo(new THREE.Vector3(-0.28, 0.94, 0.08));
+    const distToHotplate = playerPos.distanceTo(new THREE.Vector3(-0.95, 0.94, -0.15));
+    const distToCentrifuge = playerPos.distanceTo(new THREE.Vector3(1.45, 0.94, -0.15));
     const distToBalance = playerPos.distanceTo(new THREE.Vector3(0.9, 0.94, -0.15));
+    const distToRobot = playerPos.distanceTo(new THREE.Vector3(0, 0.6, 1.4));
+    const distToWallSwitches = playerPos.distanceTo(new THREE.Vector3(-4.8, 1.4, -6.95));
 
     // Check line of sight
     const forwardRay = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
 
-    if (distToTitration < 2.8 && forwardRay.y < 0.1 && forwardRay.z < 0) {
+    if (distToTitration < 2.5 && forwardRay.z < 0 && Math.abs(forwardRay.x) < 0.4) {
       onHoverObject("TITRATION BENCH [ E: Inspect / Turn Stopcock ]");
-    } else if (distToReagents < 2.5 && forwardRay.x < 0) {
-      onHoverObject("PHENOLPHTHALEIN DROPPER [ E: Add 3 Drops ]");
-    } else if (distToBalance < 2.5 && forwardRay.x > 0) {
-      onHoverObject("ANALYTICAL BALANCE [ E: Tare Zero ]");
+    } else if (distToHotplate < 2.5 && forwardRay.x < -0.15) {
+      onHoverObject("HOTPLATE STIRRER [ Click to Heat / Stir Beaker ]");
+    } else if (distToCentrifuge < 2.5 && forwardRay.x > 0.15) {
+      onHoverObject("BENCHTOP CENTRIFUGE [ Click Lid to Open / Spin ]");
+    } else if (distToReagents < 2.2 && forwardRay.x < 0) {
+      onHoverObject("PHENOLPHTHALEIN DROPPER [ Click to Add 3 Drops ]");
+    } else if (distToBalance < 2.2 && forwardRay.x > 0) {
+      onHoverObject("ANALYTICAL BALANCE [ Tare Zero ]");
+    } else if (distToRobot < 2.6 && forwardRay.z > 0.1) {
+      onHoverObject("AURA AUTONOMOUS ROBOT [ Click or Press R for Protocols ]");
+    } else if (distToWallSwitches < 2.5 && forwardRay.z < -0.4) {
+      onHoverObject("WALL SWITCHES [ Click to Toggle Lights ]");
     } else {
       onHoverObject(null);
     }

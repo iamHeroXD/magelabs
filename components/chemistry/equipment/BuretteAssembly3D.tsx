@@ -169,7 +169,6 @@ export function BuretteAssembly3D({
           ref={stopcockHandleRef}
           onClick={(e) => {
             e.stopPropagation();
-            chemistryAudio.playStopcockClick();
             onToggleStopcock?.();
           }}
         >

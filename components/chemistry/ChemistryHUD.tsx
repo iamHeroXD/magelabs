@@ -102,9 +102,22 @@ export function ChemistryHUD({
           <h1 className="font-display text-sm sm:text-base font-bold text-zinc-300 uppercase tracking-tight">
             EXP 01: VOLUMETRIC ACID–BASE TITRATION & CHEMICAL BENCH
           </h1>
-          <p className="text-[11px] font-mono text-zinc-500">
-            Interactive Beakers, Hotplate Stirrer, Centrifuge, Balance, & Titration
-          </p>
+          <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-zinc-500">
+            <span className="text-zinc-400">WASD</span>
+            <span>Walk</span>
+            <span>·</span>
+            <span className="text-zinc-400">Wheel/Z</span>
+            <span>Zoom</span>
+            <span>·</span>
+            <span className="text-zinc-400">C</span>
+            <span>Inspect</span>
+            <span>·</span>
+            <span className="text-zinc-400">R</span>
+            <span>Robot / Drop</span>
+            <span>·</span>
+            <span className="text-zinc-400">E / Click</span>
+            <span>Interact</span>
+          </div>
         </div>
 
         {/* Top-right: Controls & Navigation */}

@@ -47,7 +47,6 @@ export function InteractiveVessels({
               if (heldVesselId && heldVesselId !== v.id) {
                 onPourIntoVessel(v.id);
               } else {
-                chemistryAudio.playGlassClink();
                 onPickUpVessel(v.id);
               }
             }}
@@ -178,6 +177,17 @@ export function InteractiveVessels({
                     transmission={0.92}
                     ior={1.52}
                     side={THREE.DoubleSide}
+                  />
+                </mesh>
+                {/* Flask Glass Bottom */}
+                <mesh position={[0, 0.003, 0]}>
+                  <cylinderGeometry args={[0.05, 0.05, 0.006, 32]} />
+                  <meshPhysicalMaterial
+                    color="#ffffff"
+                    transparent
+                    opacity={0.4}
+                    roughness={0.05}
+                    transmission={0.92}
                   />
                 </mesh>
                 {v.currentVolumeMl > 0 && (

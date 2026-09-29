@@ -22,7 +22,6 @@ export function ReagentBottles3D({
         position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
-          chemistryAudio.playLiquidDrop();
           onAddIndicator?.();
         }}
       >

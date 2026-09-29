@@ -421,6 +421,37 @@ export default function ChemistryLabPage() {
     [heldVesselId, vessels]
   );
 
+  const handleFlaskClick = useCallback(() => {
+    if (heldVesselId) {
+      const source = vessels.find((v) => v.id === heldVesselId);
+      if (!source || source.currentVolumeMl <= 0) return;
+
+      setIsPouring(true);
+      chemistryAudio.playLiquidDrop();
+
+      if (source.indicator || source.solutionId === "universal") {
+        setHasIndicator(true);
+      }
+
+      setVessels((prev) =>
+        prev.map((v) =>
+          v.id === heldVesselId
+            ? { ...v, currentVolumeMl: Math.max(0, v.currentVolumeMl - 5) }
+            : v
+        )
+      );
+
+      setTimeout(() => setIsPouring(false), 650);
+    } else {
+      if (!isInspecting) {
+        setIsInspecting(true);
+        chemistryAudio.playGlassClink();
+      } else {
+        chemistryAudio.playGlassClink();
+      }
+    }
+  }, [heldVesselId, vessels, isInspecting]);
+
   const handleInteract = useCallback(() => {
     if (!isInspecting) {
       setIsInspecting(true);
@@ -487,6 +518,7 @@ export default function ChemistryLabPage() {
         onToggleTaskLight={() => setTaskLightOn((prev) => !prev)}
         onPickUpVessel={handlePickUpVessel}
         onPourIntoVessel={handlePourIntoVessel}
+        onFlaskClick={handleFlaskClick}
         onHoverObject={setHoverLabel}
         onInteract={handleInteract}
       />

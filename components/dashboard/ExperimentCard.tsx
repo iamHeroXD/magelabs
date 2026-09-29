@@ -74,7 +74,10 @@ export function ExperimentCard({ experiment, onCreateRoom }: ExperimentCardProps
 
       {/* Action buttons */}
       <div className="mt-6 flex flex-col sm:flex-row items-center gap-2 pt-4 border-t border-zinc-800/80">
-        <Link href={`/labs/${experiment.id}`} className="w-full sm:flex-1">
+        <Link
+          href={experiment.id === "acid-base-titration" ? "/lab/chemistry" : `/labs/${experiment.id}`}
+          className="w-full sm:flex-1"
+        >
           <Button
             variant={isFlagship ? "amber" : "secondary"}
             className="w-full gap-2 text-xs font-semibold h-10"

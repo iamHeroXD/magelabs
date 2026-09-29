@@ -10,6 +10,7 @@ interface FlaskProps {
   hasIndicator: boolean;
   isStirring?: boolean;
   isHighlighted?: boolean;
+  onClick?: () => void;
 }
 
 export function TitrationFlask3D({
@@ -18,6 +19,7 @@ export function TitrationFlask3D({
   hasIndicator,
   isStirring = true,
   isHighlighted = false,
+  onClick,
 }: FlaskProps) {
   const stirBarRef = useRef<THREE.Mesh>(null);
   const liquidMeshRef = useRef<THREE.Mesh>(null);
@@ -35,7 +37,13 @@ export function TitrationFlask3D({
   });
 
   return (
-    <group position={[0, 0.008, 0]}>
+    <group
+      position={[0, 0.008, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+    >
       {/* 1. Conical Glass Flask Body */}
       {/* Conical Lower Walls */}
       <mesh position={[0, 0.046, 0]} castShadow>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useParams, notFound } from "next/navigation";
+import { useParams, notFound, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { getExperimentById } from "@/lib/experiments/registry";
 import { simulateCircuit } from "@/lib/experiments/ohms-law/simulator";
@@ -42,7 +42,25 @@ const LabScene = dynamic(
 
 export default function LabPage() {
   const params = useParams();
+  const router = useRouter();
   const labId = (params?.labId as string) || "ohms-law";
+
+  useEffect(() => {
+    if (labId === "acid-base-titration") {
+      router.replace("/lab/chemistry");
+    }
+  }, [labId, router]);
+
+  if (labId === "acid-base-titration") {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-black text-zinc-400 font-mono">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent mb-4" />
+        <span className="text-xs uppercase tracking-widest text-zinc-200">
+          ENTERING CHEMISTRY LABORATORY // STAGE 02
+        </span>
+      </div>
+    );
+  }
 
   const experiment = getExperimentById(labId);
 

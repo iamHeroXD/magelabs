@@ -102,8 +102,7 @@ export function LabRobotAvatar3D({
     }
 
     // Animate arms based on active task
-    if (activeTask === "titrating" || activeTask === "heating" || activeTask === "centrifuging") {
-      taskTimerRef.current += delta;
+    if (activeTask === "titrating" || activeTask === "heating" || activeTask === "centrifuging" || activeTask === "cleaning") {
       if (rightArmRef.current) {
         // Reaching and manipulating forward
         rightArmRef.current.rotation.x = -1.1 + Math.sin(t * 4) * 0.25;
@@ -111,13 +110,6 @@ export function LabRobotAvatar3D({
       }
       if (leftArmRef.current) {
         leftArmRef.current.rotation.x = -0.9 + Math.cos(t * 3.5) * 0.2;
-      }
-
-      if (taskTimerRef.current > 6.0) {
-        // Task completed!
-        taskTimerRef.current = 0;
-        onTaskComplete?.(activeTask);
-        setSpeechBubble("AURA: Task complete!");
       }
     } else {
       // Gentle idle arm sway
@@ -146,24 +138,34 @@ export function LabRobotAvatar3D({
     }
   });
 
+  const taskStatusLabel =
+    activeTask === "idle"
+      ? "[ CLICK OR PRESS R ]"
+      : activeTask === "titrating"
+      ? "TITRATING TO pH 8.2"
+      : activeTask === "heating"
+      ? "HEATING ON HOTPLATE"
+      : activeTask === "centrifuging"
+      ? "CENTRIFUGING 8,000 RPM"
+      : "SANITIZING BENCH";
+
   return (
     <group
       ref={robotRef}
       position={[0, 0.6, 1.4]}
       onClick={(e) => {
         e.stopPropagation();
-        chemistryAudio.playBeep();
         onOpenMenu();
       }}
     >
       {/* 1. Floating Holographic Speech Bubble / Nametag */}
       <group position={[0, 1.05, 0]}>
         <mesh position={[0, 0, 0]}>
-          <planeGeometry args={[0.55, 0.14]} />
+          <planeGeometry args={[0.62, 0.15]} />
           <meshBasicMaterial color="#090a0f" transparent opacity={0.85} />
         </mesh>
         <Text
-          position={[0, 0.02, 0.01]}
+          position={[0, 0.025, 0.01]}
           fontSize={0.038}
           color="#38bdf8"
           anchorX="center"
@@ -172,13 +174,13 @@ export function LabRobotAvatar3D({
           {"AURA // LAB-BOT"}
         </Text>
         <Text
-          position={[0, -0.03, 0.01]}
-          fontSize={0.024}
-          color="#94a3b8"
+          position={[0, -0.028, 0.01]}
+          fontSize={0.022}
+          color={activeTask === "idle" ? "#94a3b8" : "#f59e0b"}
           anchorX="center"
           anchorY="middle"
         >
-          {activeTask === "idle" ? "[ CLICK FOR TASKS ]" : `BUSY: ${activeTask.toUpperCase()}`}
+          {taskStatusLabel}
         </Text>
       </group>
 

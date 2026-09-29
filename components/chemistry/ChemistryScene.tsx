@@ -41,6 +41,7 @@ interface ChemistrySceneProps {
   onToggleTaskLight: () => void;
   onPickUpVessel: (id: string) => void;
   onPourIntoVessel: (targetId: string) => void;
+  onFlaskClick?: () => void;
   onHoverObject: (label: string | null) => void;
   onInteract: () => void;
 }
@@ -68,6 +69,7 @@ export function ChemistryScene({
   onToggleTaskLight,
   onPickUpVessel,
   onPourIntoVessel,
+  onFlaskClick,
   onHoverObject,
   onInteract,
 }: ChemistrySceneProps) {
@@ -142,6 +144,7 @@ export function ChemistryScene({
             hasIndicator={hasIndicator}
             isStirring={true}
             isHighlighted={highlightedApparatus === "flask"}
+            onClick={onFlaskClick}
           />
 
           {/* Benchtop Digital pH Meter & Electrode */}
