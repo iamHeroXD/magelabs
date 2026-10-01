@@ -10,6 +10,7 @@ interface BuretteProps {
   capacityMl?: number;
   stopcockAngle: number; // 0 (closed) to 90 (stream)
   isFlowing: boolean;
+  flowRateMode?: "closed" | "dropwise" | "stream";
   onToggleStopcock?: () => void;
   isHighlighted?: boolean;
 }
@@ -19,10 +20,12 @@ export function BuretteAssembly3D({
   capacityMl = 50,
   stopcockAngle,
   isFlowing,
+  flowRateMode = "closed",
   onToggleStopcock,
   isHighlighted = false,
 }: BuretteProps) {
   const dropletRef = useRef<THREE.Group>(null);
+  const streamRef = useRef<THREE.Mesh>(null);
   const stopcockHandleRef = useRef<THREE.Group>(null);
 
   // Remaining liquid volume fraction (0 = empty, 1 = full 50mL)
@@ -32,14 +35,28 @@ export function BuretteAssembly3D({
   const liquidCenterY = 0.32 - (buretteTubeHeight - liquidHeight) / 2;
 
   useFrame((state) => {
-    // Animate falling droplets if flowing
-    if (dropletRef.current && isFlowing) {
-      const t = (state.clock.getElapsedTime() * 4.5) % 1;
-      dropletRef.current.position.y = 0.02 - t * 0.14;
-      dropletRef.current.scale.setScalar(1 - t * 0.3);
-      dropletRef.current.visible = true;
-    } else if (dropletRef.current) {
-      dropletRef.current.visible = false;
+    const isStream = flowRateMode === "stream";
+
+    // Continuous stream jet
+    if (streamRef.current) {
+      streamRef.current.visible = isFlowing && isStream;
+      if (streamRef.current.visible) {
+        const streamWave = Math.sin(state.clock.getElapsedTime() * 25) * 0.0003;
+        streamRef.current.position.x = streamWave;
+      }
+    }
+
+    // Discrete falling droplets
+    if (dropletRef.current) {
+      if (isFlowing && !isStream) {
+        const t = (state.clock.getElapsedTime() * 4.2) % 1;
+        // Gravitational acceleration curve (y = y0 - 0.5 * g * t^2)
+        dropletRef.current.position.y = 0.025 - (t * t) * 0.16;
+        dropletRef.current.scale.set(1 - t * 0.2, 1 + t * 0.6, 1 - t * 0.2);
+        dropletRef.current.visible = true;
+      } else {
+        dropletRef.current.visible = false;
+      }
     }
 
     // Smooth stopcock rotation
@@ -203,10 +220,24 @@ export function BuretteAssembly3D({
         </mesh>
       </group>
 
-      {/* 4. Active Droplet Stream when stopcock is open */}
+      {/* 4. Active Droplet Stream / Jet when stopcock is open */}
+      {/* Continuous laminar stream jet */}
+      <mesh ref={streamRef} position={[0, -0.065, 0]} visible={false}>
+        <cylinderGeometry args={[0.0016, 0.0016, 0.09, 12]} />
+        <meshPhysicalMaterial
+          color="#e0f2fe"
+          transparent
+          opacity={0.88}
+          roughness={0.04}
+          transmission={0.85}
+          ior={1.33}
+        />
+      </mesh>
+
+      {/* Discrete falling droplets */}
       <group ref={dropletRef} position={[0, 0, 0]} visible={false}>
         <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[0.003, 16, 16]} />
+          <sphereGeometry args={[0.0028, 16, 16]} />
           <meshPhysicalMaterial
             color="#e0f2fe"
             transparent

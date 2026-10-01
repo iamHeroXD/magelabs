@@ -26,6 +26,8 @@ interface ChemistrySceneProps {
   stopcockAngle: number;
   isStopcockOpen: boolean;
   isInspecting: boolean;
+  inspectViewMode?: "overview" | "meniscus" | "flask";
+  flowRateMode?: "closed" | "dropwise" | "stream";
   highlightedApparatus: string | null;
   ceilingLightsOn: boolean;
   taskLightOn: boolean;
@@ -54,6 +56,8 @@ export function ChemistryScene({
   stopcockAngle,
   isStopcockOpen,
   isInspecting,
+  inspectViewMode = "overview",
+  flowRateMode = "closed",
   highlightedApparatus,
   ceilingLightsOn,
   taskLightOn,
@@ -133,6 +137,7 @@ export function ChemistryScene({
             dispensedMl={dispensedMl}
             stopcockAngle={stopcockAngle}
             isFlowing={isStopcockOpen}
+            flowRateMode={flowRateMode}
             onToggleStopcock={onToggleStopcock}
             isHighlighted={highlightedApparatus === "burette"}
           />
@@ -203,7 +208,7 @@ export function ChemistryScene({
         />
 
         {/* 7. Inspection Camera Dolly */}
-        <InspectionCamera isInspecting={isInspecting} />
+        <InspectionCamera isInspecting={isInspecting} viewMode={inspectViewMode} />
       </Canvas>
     </div>
   );

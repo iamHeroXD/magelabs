@@ -23,6 +23,7 @@ export function TitrationFlask3D({
 }: FlaskProps) {
   const stirBarRef = useRef<THREE.Mesh>(null);
   const liquidMeshRef = useRef<THREE.Mesh>(null);
+  const vortexMeshRef = useRef<THREE.Mesh>(null);
 
   // Volume scale: 25mL is ~0.038m height, 75mL is ~0.065m height
   const liquidHeight = Math.max(0.015, Math.min(0.075, 0.015 + (totalVolumeMl / 250) * 0.08));
@@ -30,9 +31,16 @@ export function TitrationFlask3D({
   const liquidTopRadius = 0.056 - (liquidHeight * 0.45);
 
   useFrame((state) => {
+    const t = state.clock.getElapsedTime();
     // Spin magnetic stir bar inside flask
     if (stirBarRef.current && isStirring) {
-      stirBarRef.current.rotation.y = state.clock.getElapsedTime() * 12;
+      stirBarRef.current.rotation.y = t * 14;
+    }
+    // Rotate and animate fluid vortex depression cone
+    if (vortexMeshRef.current && isStirring) {
+      vortexMeshRef.current.rotation.y = -t * 14;
+      const swirlWobble = Math.sin(t * 8) * 0.001;
+      vortexMeshRef.current.position.y = liquidHeight / 2 - 0.004 + swirlWobble;
     }
   });
 
@@ -44,6 +52,11 @@ export function TitrationFlask3D({
         onClick?.();
       }}
     >
+      {/* Porcelain White Contrast Plate (Standard Analytical Titration Practice) */}
+      <mesh position={[0, -0.004, 0]} receiveShadow>
+        <boxGeometry args={[0.15, 0.006, 0.15]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.15} metalness={0.05} />
+      </mesh>
       {/* 1. Conical Glass Flask Body */}
       {/* Conical Lower Walls */}
       <mesh position={[0, 0.046, 0]} castShadow>
@@ -133,6 +146,24 @@ export function TitrationFlask3D({
             roughness={0.05}
           />
         </mesh>
+
+        {/* Dynamic Center Swirl Vortex Funnel (Formed by magnetic stirring) */}
+        {isStirring && (
+          <mesh
+            ref={vortexMeshRef}
+            position={[0, liquidHeight / 2 - 0.004, 0]}
+            rotation={[Math.PI, 0, 0]}
+          >
+            <coneGeometry args={[liquidTopRadius * 0.42, 0.016, 24, 1, true]} />
+            <meshPhysicalMaterial
+              color={solutionColor}
+              transparent
+              opacity={0.88}
+              roughness={0.04}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )}
       </group>
 
       {/* 3. PTFE Magnetic Stir Bar */}

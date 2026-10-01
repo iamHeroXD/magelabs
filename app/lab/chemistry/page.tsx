@@ -11,6 +11,7 @@ import { ChemistryNotebook } from "@/components/chemistry/ChemistryNotebook";
 import { ChemistryAIAssistant } from "@/components/chemistry/ChemistryAIAssistant";
 import { RobotTask } from "@/components/chemistry/avatar/LabRobotAvatar3D";
 import { RobotMenuModal } from "@/components/chemistry/avatar/RobotMenuModal";
+import { InspectViewMode } from "@/components/chemistry/InspectionCamera";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
 const ChemistryScene = dynamic(
@@ -120,6 +121,8 @@ export default function ChemistryLabPage() {
 
   // Inspection & UI State
   const [isInspecting, setIsInspecting] = useState(false);
+  const [inspectViewMode, setInspectViewMode] = useState<InspectViewMode>("overview");
+  const [isSwirling, setIsSwirling] = useState(false);
   const [hoverLabel, setHoverLabel] = useState<string | null>(null);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
@@ -288,9 +291,71 @@ export default function ChemistryLabPage() {
     chemistryAudio.playStopcockClick();
   }, []);
 
-  // Keyboard shortcut listener ('C' inspect, 'R' robot menu or drop held vessel, 'Escape' close modals)
+  // Handlers for Titration
+  const handleDispenseSingleDrop = useCallback(() => {
+    chemistryAudio.playLiquidDrop();
+    setDispensedMl((prev) => Math.min(50.0, prev + 0.05));
+  }, []);
+
+  const handleSetFlowRateMode = useCallback((mode: "closed" | "dropwise" | "stream") => {
+    setFlowRateMode(mode);
+    if (mode === "closed") {
+      setIsStopcockOpen(false);
+      setStopcockAngle(0);
+      chemistryAudio.playStopcockClick();
+    } else {
+      setIsStopcockOpen(true);
+      setStopcockAngle(mode === "stream" ? 90 : 45);
+      chemistryAudio.playStopcockClick();
+      if (mode === "stream") {
+        chemistryAudio.playPouringStream();
+      } else {
+        chemistryAudio.playLiquidDrop();
+      }
+    }
+  }, []);
+
+  const handleSwirlFlask = useCallback(() => {
+    chemistryAudio.playStirrerHum();
+    setIsSwirling(true);
+    setTimeout(() => setIsSwirling(false), 1200);
+  }, []);
+
+  const handleToggleStopcock = useCallback(() => {
+    chemistryAudio.playStopcockClick();
+    if (isStopcockOpen) {
+      setIsStopcockOpen(false);
+      setStopcockAngle(0);
+      setFlowRateMode("closed");
+    } else {
+      setIsStopcockOpen(true);
+      setStopcockAngle(45);
+      setFlowRateMode("dropwise");
+      chemistryAudio.playLiquidDrop();
+    }
+  }, [isStopcockOpen]);
+
+  const handleAddIndicator = useCallback(() => {
+    chemistryAudio.playLiquidDrop();
+    setHasIndicator(true);
+  }, []);
+
+  const handleResetTitration = useCallback(() => {
+    chemistryAudio.playGlassClink();
+    setIsStopcockOpen(false);
+    setStopcockAngle(0);
+    setFlowRateMode("closed");
+    setDispensedMl(0.0);
+  }, []);
+
+  // Keyboard shortcut listener ('C' inspect, 'R' robot menu, '1-4' flow rates, 'Space' swirl)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept typing in inputs or textareas if any modal is active
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
       if (e.code === "KeyC") {
         setIsInspecting((prev) => !prev);
       }
@@ -308,10 +373,31 @@ export default function ChemistryLabPage() {
         setIsNotebookOpen(false);
         setIsAssistantOpen(false);
       }
+
+      // Precision inspect mode shortcuts
+      if (isInspecting) {
+        if (e.code === "Digit1") {
+          handleDispenseSingleDrop();
+        } else if (e.code === "Digit2") {
+          handleSetFlowRateMode("dropwise");
+        } else if (e.code === "Digit3") {
+          handleSetFlowRateMode("stream");
+        } else if (e.code === "Digit4") {
+          handleSetFlowRateMode("closed");
+        } else if (e.code === "Space") {
+          e.preventDefault();
+          handleSwirlFlask();
+        } else if (e.code === "KeyV") {
+          // Cycle inspect view mode: overview -> meniscus -> flask -> overview
+          setInspectViewMode((prev) =>
+            prev === "overview" ? "meniscus" : prev === "meniscus" ? "flask" : "overview"
+          );
+        }
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [heldVesselId]);
+  }, [heldVesselId, isInspecting, handleDispenseSingleDrop, handleSetFlowRateMode, handleSwirlFlask]);
 
   // Initialize room ventilation hum on first user interaction
   useEffect(() => {
@@ -321,38 +407,6 @@ export default function ChemistryLabPage() {
     };
     window.addEventListener("click", handleFirstClick);
     return () => window.removeEventListener("click", handleFirstClick);
-  }, []);
-
-  // Handlers for Titration
-  const handleToggleStopcock = useCallback(() => {
-    chemistryAudio.playStopcockClick();
-    if (isStopcockOpen) {
-      setIsStopcockOpen(false);
-      setStopcockAngle(0);
-      setFlowRateMode("closed");
-    } else {
-      setIsStopcockOpen(true);
-      setStopcockAngle(90);
-      setFlowRateMode("stream");
-    }
-  }, [isStopcockOpen]);
-
-  const handleDispenseSingleDrop = useCallback(() => {
-    chemistryAudio.playLiquidDrop();
-    setDispensedMl((prev) => Math.min(50.0, prev + 0.05));
-  }, []);
-
-  const handleAddIndicator = useCallback(() => {
-    chemistryAudio.playLiquidDrop();
-    setHasIndicator(true);
-  }, []);
-
-  const handleResetTitration = useCallback(() => {
-    chemistryAudio.playGlassClink();
-    setIsStopcockOpen(false);
-    setStopcockAngle(0);
-    setFlowRateMode("closed");
-    setDispensedMl(0.0);
   }, []);
 
   // Vessel Picking & Pouring Sandbox Handlers
@@ -503,6 +557,8 @@ export default function ChemistryLabPage() {
         stopcockAngle={stopcockAngle}
         isStopcockOpen={isStopcockOpen}
         isInspecting={isInspecting}
+        inspectViewMode={inspectViewMode}
+        flowRateMode={flowRateMode}
         highlightedApparatus={highlightedApparatus}
         ceilingLightsOn={ceilingLightsOn}
         taskLightOn={taskLightOn}
@@ -527,6 +583,8 @@ export default function ChemistryLabPage() {
       <ChemistryHUD
         isInspecting={isInspecting}
         onToggleInspect={() => setIsInspecting((prev) => !prev)}
+        inspectViewMode={inspectViewMode}
+        onSetInspectViewMode={setInspectViewMode}
         hoverLabel={hoverLabel}
         currentStep={currentStep}
         totalSteps={5}
@@ -536,6 +594,8 @@ export default function ChemistryLabPage() {
         hasIndicator={hasIndicator}
         isStopcockOpen={isStopcockOpen}
         flowRateMode={flowRateMode}
+        onSetFlowRateMode={handleSetFlowRateMode}
+        onSwirlFlask={handleSwirlFlask}
         ceilingLightsOn={ceilingLightsOn}
         onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
         heldVessel={heldVessel}

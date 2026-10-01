@@ -46,6 +46,11 @@ export function PlayerController({
       camera.position.set(0, 1.48, 1.38);
       camera.rotation.set(-0.30, 0, 0);
       euler.current.set(-0.30, 0, 0, "YXZ");
+    } else {
+      if (document.pointerLockElement) {
+        document.exitPointerLock?.();
+        isLocked.current = false;
+      }
     }
   }, [camera, isInspecting]);
 
@@ -80,6 +85,17 @@ export function PlayerController({
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Tab") {
+        e.preventDefault();
+        if (isLocked.current) {
+          document.exitPointerLock?.();
+          isLocked.current = false;
+        } else if (!isInspecting) {
+          dom.requestPointerLock?.();
+        }
+        return;
+      }
+
       switch (e.code) {
         case "KeyW":
         case "ArrowUp":

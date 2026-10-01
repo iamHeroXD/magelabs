@@ -12,19 +12,25 @@ import {
   Play,
   Pause,
   RotateCcw,
+  RotateCw,
   Sparkles,
   Sun,
   Moon,
   ArrowDownCircle,
   Bot,
+  Eye,
+  Sliders,
 } from "lucide-react";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 import { useState } from "react";
 import { LabVesselState } from "./equipment/InteractiveVessels";
+import { InspectViewMode } from "./InspectionCamera";
 
 interface ChemistryHUDProps {
   isInspecting: boolean;
   onToggleInspect: () => void;
+  inspectViewMode?: InspectViewMode;
+  onSetInspectViewMode?: (mode: InspectViewMode) => void;
   hoverLabel: string | null;
   currentStep: number;
   totalSteps: number;
@@ -34,6 +40,8 @@ interface ChemistryHUDProps {
   hasIndicator: boolean;
   isStopcockOpen: boolean;
   flowRateMode: "closed" | "dropwise" | "stream";
+  onSetFlowRateMode?: (mode: "closed" | "dropwise" | "stream") => void;
+  onSwirlFlask?: () => void;
   ceilingLightsOn: boolean;
   onToggleCeilingLights: () => void;
   heldVessel: LabVesselState | null;
@@ -61,6 +69,8 @@ export function ChemistryHUD({
   hasIndicator,
   isStopcockOpen,
   flowRateMode,
+  onSetFlowRateMode,
+  onSwirlFlask,
   ceilingLightsOn,
   onToggleCeilingLights,
   heldVessel,
@@ -74,6 +84,8 @@ export function ChemistryHUD({
   isAssistantOpen,
   onOpenRobotMenu,
   activeRobotTask,
+  inspectViewMode = "overview",
+  onSetInspectViewMode,
 }: ChemistryHUDProps) {
   const [isMuted, setIsMuted] = useState(false);
 
@@ -226,25 +238,68 @@ export function ChemistryHUD({
       )}
 
       {/* ─────────────────────────────────────────────────────────────
+          INSPECTION MODE HEADER (Macro angle switcher & guidance)
+         ───────────────────────────────────────────────────────────── */}
+      {isInspecting && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-top-3 duration-200">
+          <div className="flex items-center gap-1.5 p-1 bg-zinc-950/90 border border-sky-500/40 rounded-full backdrop-blur-md shadow-2xl">
+            {(["overview", "meniscus", "flask"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => onSetInspectViewMode?.(mode)}
+                className={`px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider transition-all ${
+                  inspectViewMode === mode
+                    ? "bg-sky-500 text-white font-bold shadow-[0_0_12px_rgba(56,189,248,0.5)]"
+                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/80"
+                }`}
+              >
+                {mode === "overview"
+                  ? "Apparatus Overview"
+                  : mode === "meniscus"
+                  ? "Meniscus Eye-Level"
+                  : "Flask Vortex"}
+              </button>
+            ))}
+          </div>
+          <span className="text-[10px] font-mono text-zinc-400 bg-black/60 px-2.5 py-0.5 rounded backdrop-blur-sm">
+            CURSOR UNLOCKED · PRESS [C] TO EXIT INSPECTION
+          </span>
+        </div>
+      )}
+
+      {/* Optical Meniscus Reading Reticle (When in eye-level meniscus macro view) */}
+      {isInspecting && inspectViewMode === "meniscus" && (
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-between px-16 z-20 animate-in fade-in duration-300">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-400/60 to-cyan-400" />
+          <div className="px-3.5 py-1 bg-zinc-950/95 border border-cyan-400/80 rounded-full font-mono text-xs text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.5)] mx-4 backdrop-blur-md">
+            MENISCUS LINE: <strong className="text-white font-bold">{buretteDispensedMl.toFixed(2)} mL</strong> (Read bottom curve)
+          </div>
+          <div className="h-px flex-1 bg-gradient-to-r from-cyan-400 via-cyan-400/60 to-transparent" />
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
           CENTER: CLEAN RETICLE & CONTEXTUAL RAYCAST TARGET
          ───────────────────────────────────────────────────────────── */}
-      <div className="my-auto flex flex-col items-center justify-center space-y-2 pointer-events-none">
-        {/* Reticle Dot */}
-        <div
-          className={`h-2 w-2 rounded-full transition-all duration-150 border ${
-            hoverLabel
-              ? "bg-sky-400 scale-125 border-sky-200 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
-              : "bg-white/50 border-white/70"
-          }`}
-        />
+      {!isInspecting && (
+        <div className="my-auto flex flex-col items-center justify-center space-y-2 pointer-events-none">
+          {/* Reticle Dot */}
+          <div
+            className={`h-2 w-2 rounded-full transition-all duration-150 border ${
+              hoverLabel
+                ? "bg-sky-400 scale-125 border-sky-200 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+                : "bg-white/50 border-white/70"
+            }`}
+          />
 
-        {/* Hover Prompt */}
-        {hoverLabel && (
-          <div className="px-3 py-1 rounded bg-black/85 border border-zinc-700 text-white font-mono text-xs tracking-wider backdrop-blur-md shadow-lg animate-fade-in">
-            {hoverLabel}
-          </div>
-        )}
-      </div>
+          {/* Hover Prompt */}
+          {hoverLabel && (
+            <div className="px-3 py-1 rounded bg-black/85 border border-zinc-700 text-white font-mono text-xs tracking-wider backdrop-blur-md shadow-lg animate-fade-in">
+              {hoverLabel}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           BOTTOM BAR: EXPERIMENT STATUS & INTERACTION DOCK
@@ -299,46 +354,80 @@ export function ChemistryHUD({
 
         {/* Bottom-Center / Right: Interactive Titration Controls (when inspecting) */}
         {isInspecting && (
-          <div className="flex flex-wrap items-center gap-2 pointer-events-auto bg-zinc-950/90 border border-zinc-800 p-2 rounded backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-2 pointer-events-auto bg-zinc-950/95 border border-zinc-800 p-2.5 rounded-lg backdrop-blur-md shadow-2xl">
             {!hasIndicator && (
               <button
                 onClick={onAddIndicator}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-amber-600/60 hover:border-amber-400 text-amber-300 text-xs font-mono transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-950/40 border border-amber-600/70 hover:border-amber-400 text-amber-300 text-xs font-mono transition-all shadow-sm"
               >
                 <Droplet className="h-3.5 w-3.5 text-amber-400" />
                 <span>ADD INDICATOR</span>
               </button>
             )}
 
+            {/* Single drop button */}
             <button
               onClick={onDispenseSingleDrop}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-700 hover:border-white text-zinc-200 hover:text-white text-xs font-mono transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-700 hover:border-zinc-400 text-zinc-200 hover:text-white text-xs font-mono transition-all group"
+              title="Dispense exact single drop (+0.05 mL) [Key 1]"
             >
-              <Droplet className="h-3.5 w-3.5 text-sky-400" />
-              <span>SINGLE DROP (+0.05 mL)</span>
+              <Droplet className="h-3.5 w-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
+              <span>[1] DROP (+0.05 mL)</span>
             </button>
 
-            <button
-              onClick={onToggleStopcock}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
-                isStopcockOpen
-                  ? "bg-rose-600 text-white border border-rose-500 hover:bg-rose-500"
-                  : "bg-white text-black hover:bg-zinc-200"
-              }`}
-            >
-              {isStopcockOpen ? (
-                <>
-                  <Pause className="h-3.5 w-3.5" />
-                  <span>CLOSE STOPCOCK</span>
-                </>
-              ) : (
-                <>
-                  <Play className="h-3.5 w-3.5" />
-                  <span>OPEN STOPCOCK (FLOW)</span>
-                </>
-              )}
-            </button>
+            {/* Flow Mode Switcher: Dropwise vs Continuous Stream vs Closed */}
+            <div className="flex items-center bg-zinc-900/90 border border-zinc-800 rounded p-0.5 gap-1">
+              <button
+                onClick={() => onSetFlowRateMode ? onSetFlowRateMode("dropwise") : onToggleStopcock()}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                  flowRateMode === "dropwise"
+                    ? "bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
+                }`}
+                title="Dropwise Flow (~0.5 mL/s) [Key 2]"
+              >
+                <span>[2] DROPWISE</span>
+              </button>
 
+              <button
+                onClick={() => onSetFlowRateMode ? onSetFlowRateMode("stream") : onToggleStopcock()}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                  flowRateMode === "stream"
+                    ? "bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
+                }`}
+                title="Continuous Stream Flow (~2.5 mL/s) [Key 3]"
+              >
+                <span>[3] STREAM</span>
+              </button>
+
+              <button
+                onClick={() => onSetFlowRateMode ? onSetFlowRateMode("closed") : (isStopcockOpen ? onToggleStopcock() : null)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                  flowRateMode === "closed"
+                    ? "bg-rose-600/90 text-white font-bold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
+                }`}
+                title="Close Stopcock [Key 4]"
+              >
+                <Pause className="h-3 w-3" />
+                <span>[4] STOP</span>
+              </button>
+            </div>
+
+            {/* Swirl Flask Button */}
+            {onSwirlFlask && (
+              <button
+                onClick={onSwirlFlask}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-700 hover:border-emerald-500 hover:text-emerald-300 text-zinc-300 text-xs font-mono transition-all"
+                title="Swirl flask to mix solution thoroughly [Space]"
+              >
+                <RotateCw className="h-3.5 w-3.5 text-emerald-400" />
+                <span>[SPACE] SWIRL</span>
+              </button>
+            )}
+
+            {/* Reset Flask Button */}
             <button
               onClick={onResetTitration}
               className="p-1.5 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-400 hover:text-white transition-all"

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
+import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
 export type RobotTask =
   | "idle"
@@ -39,6 +40,9 @@ export function LabRobotAvatar3D({
   const rightKneeRef = useRef<THREE.Group>(null);
   const coatTailRef = useRef<THREE.Group>(null);
   const visorRef = useRef<THREE.Mesh>(null);
+  const leftPupilRef = useRef<THREE.Mesh>(null);
+  const rightPupilRef = useRef<THREE.Mesh>(null);
+  const prevTaskRef = useRef<RobotTask>(activeTask);
 
   // Shared Materials
   const coatMaterial = useMemo(
@@ -96,6 +100,18 @@ export function LabRobotAvatar3D({
 
   const currentWaypointIndex = useRef(0);
   const waypointTimerRef = useRef(0);
+
+  // Play audio servo / chime when autonomous tasks change
+  useEffect(() => {
+    if (activeTask !== prevTaskRef.current) {
+      if (activeTask !== "idle") {
+        chemistryAudio.playRobotServo();
+      } else {
+        chemistryAudio.playRobotChime();
+      }
+      prevTaskRef.current = activeTask;
+    }
+  }, [activeTask]);
 
   useFrame((state, delta) => {
     if (!robotRef.current) return;
@@ -203,10 +219,40 @@ export function LabRobotAvatar3D({
     // ─────────────────────────────────────────────────────────────
     // 3. SCIENTIST ASSISTANCE GESTURES & ARM MANIPULATION
     // ─────────────────────────────────────────────────────────────
-    if (headRef.current) {
-      headRef.current.rotation.y = Math.sin(t * 1.1) * 0.18;
-      headRef.current.rotation.x = isWalking ? 0.05 : Math.sin(t * 0.8) * 0.06;
+    if (headRef.current && robotRef.current) {
+      const headWorldPos = new THREE.Vector3();
+      headRef.current.getWorldPosition(headWorldPos);
+
+      const toCamera = state.camera.position.clone().sub(headWorldPos);
+      const distToCamera = toCamera.length();
+
+      if (distToCamera < 8.0) {
+        // Player is within social/scientific proximity - orient head naturally toward player
+        const localToCam = toCamera.clone();
+        localToCam.applyAxisAngle(new THREE.Vector3(0, 1, 0), -robotRef.current.rotation.y);
+
+        const targetYaw = Math.atan2(localToCam.x, localToCam.z);
+        const clampedYaw = THREE.MathUtils.clamp(targetYaw, -0.9, 0.9);
+
+        const targetPitch = -Math.atan2(
+          localToCam.y,
+          Math.sqrt(localToCam.x * localToCam.x + localToCam.z * localToCam.z)
+        );
+        const clampedPitch = THREE.MathUtils.clamp(targetPitch, -0.4, 0.45);
+
+        headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, clampedYaw, 4.5 * delta);
+        headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, clampedPitch, 4.5 * delta);
+      } else {
+        headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, Math.sin(t * 1.1) * 0.18, 3 * delta);
+        headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, isWalking ? 0.05 : Math.sin(t * 0.8) * 0.06, 3 * delta);
+      }
     }
+
+    // Dynamic Visor Pupil Blinking (Blinks naturally every ~3.8 seconds)
+    const isBlinking = (t % 3.8) < 0.12;
+    const pupilScaleY = isBlinking ? 0.1 : 1.0;
+    if (leftPupilRef.current) leftPupilRef.current.scale.set(1, pupilScaleY, 1);
+    if (rightPupilRef.current) rightPupilRef.current.scale.set(1, pupilScaleY, 1);
 
     if (activeTask !== "idle") {
       // Actively manipulating glassware / equipment on bench
@@ -322,11 +368,11 @@ export function LabRobotAvatar3D({
           />
         </mesh>
         {/* Expressive Visor Digital Pupil Slits */}
-        <mesh position={[-0.032, 0.012, 0.105]}>
+        <mesh ref={leftPupilRef} position={[-0.032, 0.012, 0.105]}>
           <planeGeometry args={[0.024, 0.007]} />
           <meshBasicMaterial color="#e0f2fe" />
         </mesh>
-        <mesh position={[0.032, 0.012, 0.105]}>
+        <mesh ref={rightPupilRef} position={[0.032, 0.012, 0.105]}>
           <planeGeometry args={[0.024, 0.007]} />
           <meshBasicMaterial color="#e0f2fe" />
         </mesh>
