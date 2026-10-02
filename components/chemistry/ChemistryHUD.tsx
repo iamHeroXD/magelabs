@@ -243,26 +243,31 @@ export function ChemistryHUD({
       {isInspecting && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-top-3 duration-200">
           <div className="flex items-center gap-1.5 p-1 bg-zinc-950/90 border border-sky-500/40 rounded-full backdrop-blur-md shadow-2xl">
-            {(["overview", "meniscus", "flask"] as const).map((mode) => (
+            {(
+              [
+                { id: "overview", label: "Full Bench" },
+                { id: "meniscus", label: "Burette" },
+                { id: "flask", label: "Flask" },
+                { id: "balance", label: "Balance" },
+                { id: "hotplate", label: "Hotplate" },
+                { id: "tubes", label: "Test Tubes" },
+              ] as const
+            ).map((item) => (
               <button
-                key={mode}
-                onClick={() => onSetInspectViewMode?.(mode)}
+                key={item.id}
+                onClick={() => onSetInspectViewMode?.(item.id)}
                 className={`px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider transition-all ${
-                  inspectViewMode === mode
+                  inspectViewMode === item.id
                     ? "bg-sky-500 text-white font-bold shadow-[0_0_12px_rgba(56,189,248,0.5)]"
                     : "text-zinc-400 hover:text-white hover:bg-zinc-800/80"
                 }`}
               >
-                {mode === "overview"
-                  ? "Apparatus Overview"
-                  : mode === "meniscus"
-                  ? "Meniscus Eye-Level"
-                  : "Flask Vortex"}
+                {item.label}
               </button>
             ))}
           </div>
           <span className="text-[10px] font-mono text-zinc-400 bg-black/60 px-2.5 py-0.5 rounded backdrop-blur-sm">
-            CURSOR UNLOCKED · PRESS [C] TO EXIT INSPECTION
+            CURSOR UNLOCKED · [V] CYCLE STATIONS · [C] EXIT INSPECTION
           </span>
         </div>
       )}

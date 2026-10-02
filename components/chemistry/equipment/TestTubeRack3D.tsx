@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Text } from "@react-three/drei";
+import { Text, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import { LabVesselState } from "./InteractiveVessels";
 
@@ -235,16 +235,21 @@ export function TestTubeRack3D({
               </group>
             )}
 
-            {/* Hover / Identification Tag */}
-            <Text
-              position={[0, 0.145, 0]}
-              fontSize={0.011}
-              color="#38bdf8"
-              anchorX="center"
-              anchorY="middle"
-            >
-              {tube.chemicalFormula}
-            </Text>
+            {/* Hover / Identification Tag with Billboard */}
+            <Billboard position={[0, 0.145, 0]}>
+              <mesh position={[0, 0, -0.001]}>
+                <planeGeometry args={[0.048, 0.018]} />
+                <meshBasicMaterial color="#090d16" transparent opacity={0.8} />
+              </mesh>
+              <Text
+                fontSize={0.010}
+                color="#38bdf8"
+                anchorX="center"
+                anchorY="middle"
+              >
+                {tube.chemicalFormula}
+              </Text>
+            </Billboard>
           </group>
         );
       })}

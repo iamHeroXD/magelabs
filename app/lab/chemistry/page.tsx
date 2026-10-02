@@ -470,10 +470,13 @@ export default function ChemistryLabPage() {
           e.preventDefault();
           handleSwirlFlask();
         } else if (e.code === "KeyV") {
-          // Cycle inspect view mode: overview -> meniscus -> flask -> overview
-          setInspectViewMode((prev) =>
-            prev === "overview" ? "meniscus" : prev === "meniscus" ? "flask" : "overview"
-          );
+          // Cycle inspect view mode across all 6 lab stations
+          const modes: InspectViewMode[] = ["overview", "meniscus", "flask", "balance", "hotplate", "tubes"];
+          setInspectViewMode((prev) => {
+            const nextIdx = (modes.indexOf(prev) + 1) % modes.length;
+            return modes[nextIdx];
+          });
+          chemistryAudio.playBeep();
         }
       }
     };

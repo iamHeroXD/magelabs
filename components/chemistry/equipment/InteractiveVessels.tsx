@@ -2,7 +2,7 @@
 
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
+import { Text, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 
 export interface LabVesselState {
@@ -199,11 +199,15 @@ export function InteractiveVessels({
                   </group>
                 )}
 
-                {/* Floating Telemetry Badge */}
-                <group position={[0, 0.12, 0]}>
+                {/* Floating Telemetry Badge with Camera-Facing Billboard */}
+                <Billboard position={[0, 0.125, 0]}>
+                  <mesh position={[0, 0.002, -0.002]}>
+                    <planeGeometry args={[0.16, 0.04]} />
+                    <meshBasicMaterial color="#090d16" transparent opacity={0.78} />
+                  </mesh>
                   <Text
-                    position={[0, 0.012, 0]}
-                    fontSize={0.015}
+                    position={[0, 0.011, 0]}
+                    fontSize={0.013}
                     color="#f8fafc"
                     anchorX="center"
                     anchorY="middle"
@@ -211,15 +215,15 @@ export function InteractiveVessels({
                     {`${v.name} (${v.currentVolumeMl.toFixed(0)} mL)`}
                   </Text>
                   <Text
-                    position={[0, -0.008, 0]}
-                    fontSize={0.011}
+                    position={[0, -0.007, 0]}
+                    fontSize={0.010}
                     color={v.pH < 7 ? "#f43f5e" : v.pH > 7 ? "#38bdf8" : "#4ade80"}
                     anchorX="center"
                     anchorY="middle"
                   >
                     {`pH ${v.pH.toFixed(1)} · ${temp.toFixed(1)}°C`}
                   </Text>
-                </group>
+                </Billboard>
               </group>
             )}
 
@@ -256,10 +260,14 @@ export function InteractiveVessels({
                     />
                   </group>
                 )}
-                <group position={[0, 0.23, 0]}>
+                <Billboard position={[0, 0.24, 0]}>
+                  <mesh position={[0, 0.002, -0.002]}>
+                    <planeGeometry args={[0.15, 0.038]} />
+                    <meshBasicMaterial color="#090d16" transparent opacity={0.78} />
+                  </mesh>
                   <Text
                     position={[0, 0.01, 0]}
-                    fontSize={0.014}
+                    fontSize={0.013}
                     color="#f8fafc"
                     anchorX="center"
                     anchorY="middle"
@@ -267,7 +275,7 @@ export function InteractiveVessels({
                     {`${v.name}`}
                   </Text>
                   <Text
-                    position={[0, -0.008, 0]}
+                    position={[0, -0.007, 0]}
                     fontSize={0.01}
                     color="#38bdf8"
                     anchorX="center"
@@ -275,7 +283,7 @@ export function InteractiveVessels({
                   >
                     {`pH ${v.pH.toFixed(1)} · ${v.currentVolumeMl.toFixed(0)} mL`}
                   </Text>
-                </group>
+                </Billboard>
               </group>
             )}
 
@@ -316,10 +324,14 @@ export function InteractiveVessels({
                     />
                   </group>
                 )}
-                <group position={[0, 0.12, 0]}>
+                <Billboard position={[0, 0.125, 0]}>
+                  <mesh position={[0, 0.002, -0.002]}>
+                    <planeGeometry args={[0.16, 0.04]} />
+                    <meshBasicMaterial color="#090d16" transparent opacity={0.78} />
+                  </mesh>
                   <Text
-                    position={[0, 0.012, 0]}
-                    fontSize={0.015}
+                    position={[0, 0.011, 0]}
+                    fontSize={0.013}
                     color="#f8fafc"
                     anchorX="center"
                     anchorY="middle"
@@ -327,15 +339,15 @@ export function InteractiveVessels({
                     {`${v.name} (${v.currentVolumeMl.toFixed(0)} mL)`}
                   </Text>
                   <Text
-                    position={[0, -0.008, 0]}
-                    fontSize={0.011}
+                    position={[0, -0.007, 0]}
+                    fontSize={0.010}
                     color="#38bdf8"
                     anchorX="center"
                     anchorY="middle"
                   >
                     {`pH ${v.pH.toFixed(1)} · ${temp.toFixed(1)}°C`}
                   </Text>
-                </group>
+                </Billboard>
               </group>
             )}
 
@@ -350,15 +362,21 @@ export function InteractiveVessels({
                   <sphereGeometry args={[0.01, 16, 16]} />
                   <meshStandardMaterial color="#0f172a" roughness={0.8} />
                 </mesh>
-                <Text
-                  position={[0, 0.115, 0]}
-                  fontSize={0.014}
-                  color="#f8fafc"
-                  anchorX="center"
-                  anchorY="middle"
-                >
-                  {v.name}
-                </Text>
+                <Billboard position={[0, 0.12, 0]}>
+                  <mesh position={[0, 0, -0.002]}>
+                    <planeGeometry args={[0.14, 0.024]} />
+                    <meshBasicMaterial color="#090d16" transparent opacity={0.78} />
+                  </mesh>
+                  <Text
+                    position={[0, 0, 0]}
+                    fontSize={0.012}
+                    color="#f8fafc"
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {v.name}
+                  </Text>
+                </Billboard>
               </group>
             )}
           </group>

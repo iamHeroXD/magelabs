@@ -19,7 +19,7 @@ import { HandHeldVessel3D } from "./HandHeldVessel3D";
 import { FirstPersonHands3D } from "./FirstPersonHands3D";
 import { LabRobotAvatar3D, RobotTask } from "./avatar/LabRobotAvatar3D";
 import { PlayerController } from "./PlayerController";
-import { InspectionCamera } from "./InspectionCamera";
+import { InspectionCamera, InspectViewMode } from "./InspectionCamera";
 
 interface ChemistrySceneProps {
   dispensedMl: number;
@@ -29,7 +29,7 @@ interface ChemistrySceneProps {
   stopcockAngle: number;
   isStopcockOpen: boolean;
   isInspecting: boolean;
-  inspectViewMode?: "overview" | "meniscus" | "flask";
+  inspectViewMode?: InspectViewMode;
   flowRateMode?: "closed" | "dropwise" | "stream";
   highlightedApparatus: string | null;
   ceilingLightsOn: boolean;
