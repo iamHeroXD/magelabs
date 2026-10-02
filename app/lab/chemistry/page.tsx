@@ -6,7 +6,6 @@ import { calculateTitrationEquilibrium, calculateUnknownMolarity } from "@/lib/c
 import { mixSolutions } from "@/lib/chemistry/solutions";
 import { TitrationTrial } from "@/lib/chemistry/types";
 import { LabVesselState } from "@/components/chemistry/equipment/InteractiveVessels";
-import { ChemistryHUD } from "@/components/chemistry/ChemistryHUD";
 import { ChemistryNotebook } from "@/components/chemistry/ChemistryNotebook";
 import { ChemistryAIAssistant } from "@/components/chemistry/ChemistryAIAssistant";
 import { RobotTask } from "@/components/chemistry/avatar/LabRobotAvatar3D";
@@ -14,24 +13,8 @@ import { RobotMenuModal } from "@/components/chemistry/avatar/RobotMenuModal";
 import { InspectViewMode } from "@/components/chemistry/InspectionCamera";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 import { ChemistryErrorBoundary } from "@/components/chemistry/ChemistryErrorBoundary";
+import { ChemistryWorkbench2D } from "@/components/chemistry/ChemistryWorkbench2D";
 
-const ChemistryScene = dynamic(
-  () => import("@/components/chemistry/ChemistryScene").then((m) => m.ChemistryScene),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-screen w-screen flex-col items-center justify-center bg-black text-zinc-400 font-mono">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent mb-4" />
-        <span className="text-xs uppercase tracking-widest text-zinc-200">
-          ENTERING CHEMISTRY LABORATORY // STAGE 02
-        </span>
-        <span className="text-[11px] text-zinc-500 mt-1">
-          Loading 1:1 architecture, glassware transmission shaders, and stoichiometry solver...
-        </span>
-      </div>
-    ),
-  }
-);
 
 const INITIAL_VESSELS: LabVesselState[] = [
   {
@@ -667,70 +650,30 @@ export default function ChemistryLabPage() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
-      {/* 3D WebGL Canvas Layer with Fault-Tolerant Error Boundary */}
+      {/* 2D Interactive Virtual Chemistry Laboratory */}
       <ChemistryErrorBoundary>
-        <ChemistryScene
+        <ChemistryWorkbench2D
           dispensedMl={dispensedMl}
           currentPh={equilibrium.pH}
           solutionColor={equilibrium.color}
           hasIndicator={hasIndicator}
-          stopcockAngle={stopcockAngle}
           isStopcockOpen={isStopcockOpen}
-          isInspecting={isInspecting}
-          inspectViewMode={inspectViewMode}
           flowRateMode={flowRateMode}
-          highlightedApparatus={highlightedApparatus}
-          ceilingLightsOn={ceilingLightsOn}
-          taskLightOn={taskLightOn}
           vessels={vessels}
           heldVesselId={heldVesselId}
-          isPouring={isPouring}
           activeRobotTask={activeRobotTask}
-          onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
-          onRobotTaskComplete={() => setActiveRobotTask("idle")}
           onToggleStopcock={handleToggleStopcock}
+          onDispenseSingleDrop={handleDispenseSingleDrop}
           onAddIndicator={handleAddIndicator}
-          onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
-          onToggleTaskLight={() => setTaskLightOn((prev) => !prev)}
+          onResetTitration={handleResetTitration}
+          onSetFlowRateMode={handleSetFlowRateMode}
           onPickUpVessel={handlePickUpVessel}
           onPourIntoVessel={handlePourIntoVessel}
-          onFlaskClick={handleFlaskClick}
-          onHoverObject={setHoverLabel}
-          onInteract={handleInteract}
+          onOpenNotebook={() => setIsNotebookOpen(true)}
+          onToggleAssistant={() => setIsAssistantOpen((prev) => !prev)}
+          onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
         />
       </ChemistryErrorBoundary>
-
-      {/* Minimalist Chemistry HUD */}
-      <ChemistryHUD
-        isInspecting={isInspecting}
-        onToggleInspect={() => setIsInspecting((prev) => !prev)}
-        inspectViewMode={inspectViewMode}
-        onSetInspectViewMode={setInspectViewMode}
-        hoverLabel={hoverLabel}
-        currentStep={currentStep}
-        totalSteps={5}
-        buretteDispensedMl={dispensedMl}
-        currentPh={equilibrium.pH}
-        solutionColor={equilibrium.color}
-        hasIndicator={hasIndicator}
-        isStopcockOpen={isStopcockOpen}
-        flowRateMode={flowRateMode}
-        onSetFlowRateMode={handleSetFlowRateMode}
-        onSwirlFlask={handleSwirlFlask}
-        ceilingLightsOn={ceilingLightsOn}
-        onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
-        heldVessel={heldVessel}
-        onDropVessel={handleDropVessel}
-        onToggleStopcock={handleToggleStopcock}
-        onDispenseSingleDrop={handleDispenseSingleDrop}
-        onAddIndicator={handleAddIndicator}
-        onResetTitration={handleResetTitration}
-        onOpenNotebook={() => setIsNotebookOpen(true)}
-        onToggleAssistant={() => setIsAssistantOpen((prev) => !prev)}
-        isAssistantOpen={isAssistantOpen}
-        onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
-        activeRobotTask={activeRobotTask}
-      />
 
       {/* AURA Autonomous Lab Robot Task Selection Modal */}
       <RobotMenuModal
