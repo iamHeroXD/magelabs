@@ -1,8 +1,15 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, Suspense } from "react";
 import * as THREE from "three";
 import { WallLightSwitches3D } from "./equipment/WallLightSwitches3D";
+import {
+  VolumetricFlaskGLB,
+  WashBottleGLB,
+  RoundBottomFlaskGLB,
+  FunnelGLB,
+  BeakerGLB,
+} from "./equipment/ModelGlassware3D";
 import {
   getLabFloorTextures,
   getCleanroomWallTextures,
@@ -295,20 +302,12 @@ export function ChemistryRoom3D({
           ))}
 
           {/* Squeeze Wash Bottle & Kimwipes Box */}
-          <group position={[-0.15, 1.57, 0]}>
-            <mesh castShadow>
-              <cylinderGeometry args={[0.034, 0.034, 0.15, 16]} />
-              <meshPhysicalMaterial color="#ffffff" transmission={0.7} roughness={0.2} transparent opacity={0.65} />
-            </mesh>
-            <mesh position={[0, 0.085, 0]}>
-              <cylinderGeometry args={[0.015, 0.015, 0.02, 16]} />
-              <meshStandardMaterial color="#dc2626" roughness={0.3} />
-            </mesh>
-            <mesh position={[0.015, 0.12, 0]} rotation={[0, 0, -0.6]}>
-              <cylinderGeometry args={[0.003, 0.003, 0.08, 12]} />
-              <meshStandardMaterial color="#dc2626" roughness={0.3} />
-            </mesh>
-          </group>
+          <Suspense fallback={null}>
+            <WashBottleGLB position={[-0.15, 1.49, 0]} scale={0.24} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <FunnelGLB position={[0.42, 1.49, 0]} scale={0.8} />
+          </Suspense>
           <group position={[0.18, 1.54, 0]}>
             <mesh castShadow>
               <boxGeometry args={[0.13, 0.08, 0.11]} />
@@ -320,23 +319,14 @@ export function ChemistryRoom3D({
             </mesh>
           </group>
 
-          {/* Volumetric Flasks on Upper Shelf */}
-          {[-1.2, -0.6, 0, 0.6, 1.2].map((ux, ui) => (
-            <group key={`up-bot-${ui}`} position={[ux, 1.9, 0]}>
-              <mesh castShadow>
-                <sphereGeometry args={[0.042, 16, 16]} />
-                <meshPhysicalMaterial color="#ffffff" transmission={0.9} roughness={0.08} transparent opacity={0.35} />
-              </mesh>
-              <mesh position={[0, 0.055, 0]} castShadow>
-                <cylinderGeometry args={[0.01, 0.01, 0.09, 16]} />
-                <meshPhysicalMaterial color="#ffffff" transmission={0.9} roughness={0.08} transparent opacity={0.35} />
-              </mesh>
-              <mesh position={[0, 0.108, 0]}>
-                <cylinderGeometry args={[0.014, 0.011, 0.02, 16]} />
-                <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.3} />
-              </mesh>
-            </group>
-          ))}
+          {/* Authentic Volumetric Flasks with Stoppers on Upper Shelf */}
+          <Suspense fallback={null}>
+            <VolumetricFlaskGLB size={100} position={[-1.2, 1.83, 0]} scale={0.85} />
+            <VolumetricFlaskGLB size={250} position={[-0.6, 1.83, 0]} scale={0.85} />
+            <VolumetricFlaskGLB size={500} position={[0, 1.83, 0]} scale={0.85} />
+            <VolumetricFlaskGLB size={250} position={[0.6, 1.83, 0]} scale={0.85} />
+            <VolumetricFlaskGLB size={100} position={[1.2, 1.83, 0]} scale={0.85} />
+          </Suspense>
         </group>
       </group>
 
@@ -368,6 +358,13 @@ export function ChemistryRoom3D({
             <meshStandardMaterial color="#e2e8f0" roughness={0.15} metalness={0.95} />
           </mesh>
         </group>
+
+        {/* Authentic Glassware Setup on Wet Chemistry Bench */}
+        <Suspense fallback={null}>
+          <RoundBottomFlaskGLB position={[0.1, 0.93, 0.8]} scale={0.9} />
+          <BeakerGLB size={500} position={[0.1, 0.93, 1.4]} />
+          <FunnelGLB position={[0.1, 0.93, 1.8]} scale={0.9} />
+        </Suspense>
 
         {/* Wall Reagent Shelving (2 Tiers with Chemical Bottles) */}
         <group position={[-0.45, 1.8, 1.2]}>

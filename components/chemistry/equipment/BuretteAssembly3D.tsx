@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
+import { BuretteStandGLB } from "./ModelGlassware3D";
 
 interface BuretteProps {
   dispensedMl: number; // 0 to 50 mL
@@ -72,36 +73,37 @@ export function BuretteAssembly3D({
 
   return (
     <group position={[0, 0, 0]}>
-      {/* 1. Heavy Cast-Iron Retort Stand Base */}
-      <mesh position={[0, 0.015, 0.12]} castShadow receiveShadow>
-        <boxGeometry args={[0.26, 0.025, 0.36]} />
-        <meshStandardMaterial color="#1f232b" roughness={0.7} metalness={0.85} />
-      </mesh>
-
-      {/* Retort Stand Chrome Rod */}
-      <mesh position={[0.09, 0.45, 0.12]} castShadow>
-        <cylinderGeometry args={[0.0065, 0.0065, 0.88, 24]} />
-        <meshStandardMaterial color="#e4e4e7" roughness={0.15} metalness={0.95} />
-      </mesh>
-
-      {/* Cast Iron Support Bosshead & Dual V-Jaw Burette Clamp */}
-      <group position={[0.045, 0.42, 0.06]}>
-        {/* Bosshead sleeve */}
-        <mesh position={[0.045, 0, 0.06]}>
-          <boxGeometry args={[0.024, 0.032, 0.024]} />
-          <meshStandardMaterial color="#27272a" roughness={0.6} metalness={0.7} />
-        </mesh>
-        {/* Extension arm */}
-        <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.005, 0.005, 0.09, 16]} />
-          <meshStandardMaterial color="#d4d4d8" roughness={0.2} metalness={0.9} />
-        </mesh>
-        {/* Rubber-sleeved clamp jaws */}
-        <mesh position={[-0.045, 0, -0.06]}>
-          <boxGeometry args={[0.022, 0.024, 0.028]} />
-          <meshStandardMaterial color="#dc2626" roughness={0.7} metalness={0.1} />
-        </mesh>
-      </group>
+      {/* 1. Heavy Cast-Iron Retort Stand Base & Rod */}
+      <Suspense
+        fallback={
+          <group>
+            <mesh position={[0, 0.015, 0.12]} castShadow receiveShadow>
+              <boxGeometry args={[0.26, 0.025, 0.36]} />
+              <meshStandardMaterial color="#1f232b" roughness={0.7} metalness={0.85} />
+            </mesh>
+            <mesh position={[0.09, 0.45, 0.12]} castShadow>
+              <cylinderGeometry args={[0.0065, 0.0065, 0.88, 24]} />
+              <meshStandardMaterial color="#e4e4e7" roughness={0.15} metalness={0.95} />
+            </mesh>
+            <group position={[0.045, 0.42, 0.06]}>
+              <mesh position={[0.045, 0, 0.06]}>
+                <boxGeometry args={[0.024, 0.032, 0.024]} />
+                <meshStandardMaterial color="#27272a" roughness={0.6} metalness={0.7} />
+              </mesh>
+              <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                <cylinderGeometry args={[0.005, 0.005, 0.09, 16]} />
+                <meshStandardMaterial color="#d4d4d8" roughness={0.2} metalness={0.9} />
+              </mesh>
+              <mesh position={[-0.045, 0, -0.06]}>
+                <boxGeometry args={[0.022, 0.024, 0.028]} />
+                <meshStandardMaterial color="#dc2626" roughness={0.7} metalness={0.1} />
+              </mesh>
+            </group>
+          </group>
+        }
+      >
+        <BuretteStandGLB position={[0.01, 0, 0]} isHighlighted={isHighlighted} />
+      </Suspense>
 
       {/* 2. Glass Burette Body (50 mL capacity) */}
       <group position={[0, 0.32, 0]}>

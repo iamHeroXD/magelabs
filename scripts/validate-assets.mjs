@@ -31,6 +31,14 @@ if (fs.existsSync(logoPath)) {
   console.warn('⚠️ logo.png missing in public root');
 }
 
+// Check GLB 3D models
+const glbFiles = fs.readdirSync(MODELS_DIR).filter((f) => f.endsWith('.glb'));
+console.log(`✓ Found ${glbFiles.length} realistic GLB 3D models in public/models/:`);
+for (const file of glbFiles) {
+  const stat = fs.statSync(path.join(MODELS_DIR, file));
+  console.log(`  - ${file} (${(stat.size / (1024 * 1024)).toFixed(2)} MB)`);
+}
+
 // Procedural fallback confirmation
 console.log('✓ High-fidelity procedural Three.js component pipeline configured:');
 console.log('  - Power Supply: Benchtop DC variable 0-24V with LED readout');

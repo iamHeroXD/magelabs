@@ -1,8 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
+import { WashBottleGLB } from "./ModelGlassware3D";
 
 interface ReagentsProps {
   onAddIndicator?: () => void;
@@ -139,31 +141,30 @@ export function ReagentBottles3D({
         </mesh>
       </group>
 
-      {/* 3. LDPE Distilled Water Wash Bottle with Curved Spout */}
-      <group position={[-0.07, 0, 0.08]}>
-        {/* Translucent Squeezable Bottle Body */}
-        <mesh position={[0, 0.06, 0]} castShadow>
-          <cylinderGeometry args={[0.028, 0.028, 0.12, 24]} />
-          <meshPhysicalMaterial
-            color="#ffffff"
-            transparent
-            opacity={0.65}
-            roughness={0.25}
-            transmission={0.6}
-            ior={1.4}
-          />
-        </mesh>
-        {/* Red Cap with Angled Gooseneck Spout */}
-        <mesh position={[0, 0.126, 0]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.016, 24]} />
-          <meshStandardMaterial color="#dc2626" roughness={0.4} />
-        </mesh>
-        {/* Curved dispensing tube */}
-        <mesh position={[0.012, 0.155, 0]} rotation={[0, 0, -0.6]}>
-          <cylinderGeometry args={[0.002, 0.002, 0.05, 12]} />
-          <meshStandardMaterial color="#dc2626" roughness={0.4} />
-        </mesh>
-      </group>
+      {/* 3. LDPE Distilled Water Wash Bottle with Curved Spout (Authentic 3D Model) */}
+      <Suspense
+        fallback={
+          <group position={[-0.07, 0, 0.08]}>
+            <mesh position={[0, 0.06, 0]} castShadow>
+              <cylinderGeometry args={[0.028, 0.028, 0.12, 24]} />
+              <meshPhysicalMaterial
+                color="#ffffff"
+                transparent
+                opacity={0.65}
+                roughness={0.25}
+                transmission={0.6}
+                ior={1.4}
+              />
+            </mesh>
+            <mesh position={[0, 0.126, 0]}>
+              <cylinderGeometry args={[0.015, 0.015, 0.016, 24]} />
+              <meshStandardMaterial color="#dc2626" roughness={0.4} />
+            </mesh>
+          </group>
+        }
+      >
+        <WashBottleGLB position={[-0.07, 0, 0.08]} scale={0.28} />
+      </Suspense>
     </group>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 import { Text, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import { LabVesselState } from "./InteractiveVessels";
+import { TestTubeRackGLB } from "./ModelGlassware3D";
 
 export interface TestTubeSolution {
   id: string;
@@ -114,37 +115,38 @@ export function TestTubeRack3D({
       {/* ─────────────────────────────────────────────────────────────
           1. ACRYLIC TEST TUBE RACK FRAMEWORK
          ───────────────────────────────────────────────────────────── */}
-      {/* Base Plate with recessed wells */}
-      <mesh position={[0, 0.006, 0]} receiveShadow castShadow material={rackMaterial}>
-        <boxGeometry args={[0.32, 0.012, 0.09]} />
-      </mesh>
-
-      {/* Top Tube Retaining Tier Bar */}
-      <mesh position={[0, 0.09, 0]} castShadow material={rackMaterial}>
-        <boxGeometry args={[0.32, 0.008, 0.09]} />
-      </mesh>
-
-      {/* End Support Upright Walls */}
-      <mesh position={[-0.155, 0.048, 0]} castShadow material={rackMaterial}>
-        <boxGeometry args={[0.01, 0.096, 0.09]} />
-      </mesh>
-      <mesh position={[0.155, 0.048, 0]} castShadow material={rackMaterial}>
-        <boxGeometry args={[0.01, 0.096, 0.09]} />
-      </mesh>
-
-      {/* Rear Vertical Drying Pins (6 wooden/poly pins for inverted drying) */}
-      {[-0.125, -0.075, -0.025, 0.025, 0.075, 0.125].map((px, pi) => (
-        <group key={`pin-${pi}`} position={[px, 0.012, -0.032]}>
-          <mesh castShadow>
-            <cylinderGeometry args={[0.003, 0.003, 0.08, 12]} />
-            <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.7} />
-          </mesh>
-          <mesh position={[0, 0.042, 0]}>
-            <sphereGeometry args={[0.004, 12, 12]} />
-            <meshStandardMaterial color="#3b82f6" roughness={0.4} />
-          </mesh>
-        </group>
-      ))}
+      <Suspense
+        fallback={
+          <group>
+            <mesh position={[0, 0.006, 0]} receiveShadow castShadow material={rackMaterial}>
+              <boxGeometry args={[0.32, 0.012, 0.09]} />
+            </mesh>
+            <mesh position={[0, 0.09, 0]} castShadow material={rackMaterial}>
+              <boxGeometry args={[0.32, 0.008, 0.09]} />
+            </mesh>
+            <mesh position={[-0.155, 0.048, 0]} castShadow material={rackMaterial}>
+              <boxGeometry args={[0.01, 0.096, 0.09]} />
+            </mesh>
+            <mesh position={[0.155, 0.048, 0]} castShadow material={rackMaterial}>
+              <boxGeometry args={[0.01, 0.096, 0.09]} />
+            </mesh>
+            {[-0.125, -0.075, -0.025, 0.025, 0.075, 0.125].map((px, pi) => (
+              <group key={`pin-${pi}`} position={[px, 0.012, -0.032]}>
+                <mesh castShadow>
+                  <cylinderGeometry args={[0.003, 0.003, 0.08, 12]} />
+                  <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.7} />
+                </mesh>
+                <mesh position={[0, 0.042, 0]}>
+                  <sphereGeometry args={[0.004, 12, 12]} />
+                  <meshStandardMaterial color="#3b82f6" roughness={0.4} />
+                </mesh>
+              </group>
+            ))}
+          </group>
+        }
+      >
+        <TestTubeRackGLB position={[0, 0, 0]} scale={0.15} />
+      </Suspense>
 
       {/* ─────────────────────────────────────────────────────────────
           2. SIX CHEMICAL REACTION TEST TUBES

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
@@ -140,82 +141,84 @@ export function ChemistryScene({
         />
 
         {/* 2. Central Island Workbench Apparatus (Y = 0.94 m) */}
-        <group position={[0, 0.94, 0]}>
-          {/* Flagship Burette Assembly & Retort Stand */}
-          <BuretteAssembly3D
-            dispensedMl={dispensedMl}
-            stopcockAngle={stopcockAngle}
-            isFlowing={isStopcockOpen}
-            flowRateMode={flowRateMode}
-            onToggleStopcock={onToggleStopcock}
-            isHighlighted={highlightedApparatus === "burette"}
-          />
+        <Suspense fallback={null}>
+          <group position={[0, 0.94, 0]}>
+            {/* Flagship Burette Assembly & Retort Stand */}
+            <BuretteAssembly3D
+              dispensedMl={dispensedMl}
+              stopcockAngle={stopcockAngle}
+              isFlowing={isStopcockOpen}
+              flowRateMode={flowRateMode}
+              onToggleStopcock={onToggleStopcock}
+              isHighlighted={highlightedApparatus === "burette"}
+            />
 
-          {/* Erlenmeyer Flask with Dynamic Fluid & Phenolphthalein Color */}
-          <TitrationFlask3D
-            totalVolumeMl={25.0 + dispensedMl}
-            solutionColor={solutionColor}
-            hasIndicator={hasIndicator}
-            isStirring={true}
-            isHighlighted={highlightedApparatus === "flask"}
-            onClick={onFlaskClick}
-          />
+            {/* Erlenmeyer Flask with Dynamic Fluid & Phenolphthalein Color */}
+            <TitrationFlask3D
+              totalVolumeMl={25.0 + dispensedMl}
+              solutionColor={solutionColor}
+              hasIndicator={hasIndicator}
+              isStirring={true}
+              isHighlighted={highlightedApparatus === "flask"}
+              onClick={onFlaskClick}
+            />
 
-          {/* Benchtop Digital pH Meter & Electrode */}
-          <DigitalPhMeter3D
-            currentPh={currentPh}
-            isHighlighted={highlightedApparatus === "ph-meter"}
-          />
+            {/* Benchtop Digital pH Meter & Electrode */}
+            <DigitalPhMeter3D
+              currentPh={currentPh}
+              isHighlighted={highlightedApparatus === "ph-meter"}
+            />
 
-          {/* Reagent Dropper Bottles & Wash Bottle */}
-          <ReagentBottles3D
-            onAddIndicator={onAddIndicator}
-            hasIndicator={hasIndicator}
-            isIndicatorHighlighted={highlightedApparatus === "indicator"}
-          />
+            {/* Reagent Dropper Bottles & Wash Bottle */}
+            <ReagentBottles3D
+              onAddIndicator={onAddIndicator}
+              hasIndicator={hasIndicator}
+              isIndicatorHighlighted={highlightedApparatus === "indicator"}
+            />
 
-          {/* Precision Analytical Balance */}
-          <AnalyticalBalance3D
-            currentWeightG={balanceWeightG}
-            position={[0.68, 0.005, -0.08]}
-            rotation={[0, -0.15, 0]}
-          />
+            {/* Precision Analytical Balance */}
+            <AnalyticalBalance3D
+              currentWeightG={balanceWeightG}
+              position={[0.68, 0.005, -0.08]}
+              rotation={[0, -0.15, 0]}
+            />
 
-          {/* 6-Well Chemical Reaction Test Tube Rack */}
-          <TestTubeRack3D
-            position={[-0.18, 0.005, -0.16]}
-            rotation={[0, 0.1, 0]}
-            heldVesselId={heldVesselId}
-            onPickUpTube={(tube) => onPickUpVessel(tube.id)}
-            onPourIntoTube={(tubeId) => onPourIntoVessel(tubeId)}
-          />
+            {/* 6-Well Chemical Reaction Test Tube Rack */}
+            <TestTubeRack3D
+              position={[-0.18, 0.005, -0.16]}
+              rotation={[0, 0.1, 0]}
+              heldVesselId={heldVesselId}
+              onPickUpTube={(tube) => onPickUpVessel(tube.id)}
+              onPourIntoTube={(tubeId) => onPourIntoVessel(tubeId)}
+            />
 
-          {/* Rotating Micropipette Carousel & Sterile Tip Box */}
-          <PipetteCarousel3D
-            position={[-0.46, 0.005, -0.16]}
-            rotation={[0, -0.2, 0]}
-          />
+            {/* Rotating Micropipette Carousel & Sterile Tip Box */}
+            <PipetteCarousel3D
+              position={[-0.46, 0.005, -0.16]}
+              rotation={[0, -0.2, 0]}
+            />
 
-          {/* Authentic Workbench Accessories: Spot Plate, Watch Glass, Spatula, Timer */}
-          <BenchAccessories3D
-            position={[0.08, 0.005, -0.15]}
-            rotation={[0, 0, 0]}
-          />
+            {/* Authentic Workbench Accessories: Spot Plate, Watch Glass, Spatula, Timer */}
+            <BenchAccessories3D
+              position={[0.08, 0.005, -0.15]}
+              rotation={[0, 0, 0]}
+            />
 
-          {/* Interactive Magnetic Hotplate Stirrer */}
-          <HotplateStirrer3D position={[-0.82, 0.005, -0.08]} rotation={[0, 0.25, 0]} />
+            {/* Interactive Magnetic Hotplate Stirrer */}
+            <HotplateStirrer3D position={[-0.82, 0.005, -0.08]} rotation={[0, 0.25, 0]} />
 
-          {/* Interactive Benchtop Centrifuge */}
-          <Centrifuge3D position={[1.15, 0.005, -0.08]} rotation={[0, -0.28, 0]} />
+            {/* Interactive Benchtop Centrifuge */}
+            <Centrifuge3D position={[1.15, 0.005, -0.08]} rotation={[0, -0.28, 0]} />
 
-          {/* Pickable / Pourable Vessels on Island Bench */}
-          <InteractiveVessels
-            vessels={vessels}
-            heldVesselId={heldVesselId}
-            onPickUpVessel={onPickUpVessel}
-            onPourIntoVessel={onPourIntoVessel}
-          />
-        </group>
+            {/* Pickable / Pourable Vessels on Island Bench */}
+            <InteractiveVessels
+              vessels={vessels}
+              heldVesselId={heldVesselId}
+              onPickUpVessel={onPickUpVessel}
+              onPourIntoVessel={onPourIntoVessel}
+            />
+          </group>
+        </Suspense>
 
         {/* 3. Autonomous AI Laboratory Robot Avatar (AURA) */}
         <LabRobotAvatar3D

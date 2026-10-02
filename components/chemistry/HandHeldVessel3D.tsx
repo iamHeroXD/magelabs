@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { LabVesselState } from "./equipment/InteractiveVessels";
+import { BeakerGLB, ConicalFlaskGLB, MeasuringCylinderGLB } from "./equipment/ModelGlassware3D";
 
 interface HandHeldProps {
   heldVessel: LabVesselState | null;
@@ -54,29 +55,34 @@ export function HandHeldVessel3D({ heldVessel, isPouring }: HandHeldProps) {
 
   return (
     <group ref={groupRef}>
-      {/* Hand-Held Glass Beaker / Flask Body */}
-      <mesh castShadow>
-        <cylinderGeometry args={[0.038, 0.038, 0.09, 32, 1, true]} />
-        <meshPhysicalMaterial
-          color="#ffffff"
-          transparent
-          opacity={0.42}
-          roughness={0.06}
-          transmission={0.92}
-          ior={1.52}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {/* Base */}
-      <mesh position={[0, -0.045, 0]}>
-        <cylinderGeometry args={[0.038, 0.038, 0.005, 32]} />
-        <meshPhysicalMaterial color="#ffffff" transparent opacity={0.5} roughness={0.05} />
-      </mesh>
-      {/* Flanged Lip */}
-      <mesh position={[0, 0.045, 0]}>
-        <torusGeometry args={[0.039, 0.002, 12, 32]} />
-        <meshPhysicalMaterial color="#ffffff" transparent opacity={0.55} roughness={0.04} />
-      </mesh>
+      {/* Authentic Hand-Held 3D Glassware Body */}
+      <Suspense
+        fallback={
+          <mesh castShadow>
+            <cylinderGeometry args={[0.038, 0.038, 0.09, 32, 1, true]} />
+            <meshPhysicalMaterial
+              color="#ffffff"
+              transparent
+              opacity={0.42}
+              roughness={0.06}
+              transmission={0.92}
+              ior={1.52}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        }
+      >
+        {heldVessel.type === "flask" ? (
+          <ConicalFlaskGLB size="small" scale={0.65} position={[0, -0.045, 0]} />
+        ) : heldVessel.type === "cylinder" ? (
+          <MeasuringCylinderGLB position={[0, -0.045, 0]} scale={0.00018} />
+        ) : (
+          <BeakerGLB
+            size={heldVessel.capacityMl === 100 ? 100 : heldVessel.capacityMl === 500 ? 500 : 250}
+            position={[0, -0.045, 0]}
+          />
+        )}
+      </Suspense>
 
       {/* Liquid inside */}
       {heldVessel.currentVolumeMl > 0 && (

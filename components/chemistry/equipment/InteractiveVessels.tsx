@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, Suspense } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Text, Billboard } from "@react-three/drei";
 import * as THREE from "three";
+import { BeakerGLB, ConicalFlaskGLB, MeasuringCylinderGLB } from "./ModelGlassware3D";
 
 export interface LabVesselState {
   id: string;
@@ -148,43 +149,34 @@ export function InteractiveVessels({
             {/* 1. BEAKER MODEL */}
             {v.type === "beaker" && (
               <group position={[0, 0, 0]}>
-                {/* Clear Borosilicate Glass Cylinder */}
-                <mesh position={[0, 0.045, 0]} castShadow>
-                  <cylinderGeometry args={[0.038, 0.038, 0.09, 32, 1, true]} />
-                  <meshPhysicalMaterial
-                    color="#ffffff"
-                    transparent
-                    opacity={0.35}
-                    roughness={0.06}
-                    transmission={0.92}
-                    ior={1.52}
-                    thickness={0.002}
-                    side={THREE.DoubleSide}
+                {/* Authentic 3D Beaker Model with Procedural Fallback */}
+                <Suspense
+                  fallback={
+                    <group>
+                      <mesh position={[0, 0.045, 0]} castShadow>
+                        <cylinderGeometry args={[0.038, 0.038, 0.09, 32, 1, true]} />
+                        <meshPhysicalMaterial
+                          color="#ffffff"
+                          transparent
+                          opacity={0.35}
+                          roughness={0.06}
+                          transmission={0.92}
+                          ior={1.52}
+                          thickness={0.002}
+                          side={THREE.DoubleSide}
+                        />
+                      </mesh>
+                      <mesh position={[0, 0.003, 0]}>
+                        <cylinderGeometry args={[0.038, 0.038, 0.006, 32]} />
+                        <meshPhysicalMaterial color="#ffffff" transparent opacity={0.4} roughness={0.05} transmission={0.92} />
+                      </mesh>
+                    </group>
+                  }
+                >
+                  <BeakerGLB
+                    size={v.capacityMl === 100 ? 100 : v.capacityMl === 500 ? 500 : 250}
                   />
-                </mesh>
-                {/* Glass Bottom */}
-                <mesh position={[0, 0.003, 0]}>
-                  <cylinderGeometry args={[0.038, 0.038, 0.006, 32]} />
-                  <meshPhysicalMaterial
-                    color="#ffffff"
-                    transparent
-                    opacity={0.4}
-                    roughness={0.05}
-                    transmission={0.92}
-                  />
-                </mesh>
-                {/* Flanged Lip Spout */}
-                <mesh position={[0, 0.09, 0]}>
-                  <torusGeometry args={[0.039, 0.0025, 12, 32]} />
-                  <meshPhysicalMaterial color="#ffffff" transparent opacity={0.5} roughness={0.04} />
-                </mesh>
-                {/* Graduations */}
-                {[0.025, 0.045, 0.065].map((y, idx) => (
-                  <mesh key={idx} position={[0, y, 0]}>
-                    <ringGeometry args={[0.0382, 0.0388, 24]} />
-                    <meshBasicMaterial color="#ffffff" side={THREE.DoubleSide} transparent opacity={0.6} />
-                  </mesh>
-                ))}
+                </Suspense>
 
                 {/* Reactive Liquid Contents */}
                 {v.currentVolumeMl > 0 && (
@@ -230,24 +222,30 @@ export function InteractiveVessels({
             {/* 2. GRADUATED CYLINDER MODEL */}
             {v.type === "cylinder" && (
               <group position={[0, 0, 0]}>
-                {/* Hexagonal Polypropylene Base */}
-                <mesh position={[0, 0.005, 0]} receiveShadow>
-                  <cylinderGeometry args={[0.032, 0.035, 0.01, 6]} />
-                  <meshStandardMaterial color="#334155" roughness={0.4} />
-                </mesh>
-                {/* Tall Glass Cylinder Tube */}
-                <mesh position={[0, 0.11, 0]} castShadow>
-                  <cylinderGeometry args={[0.018, 0.018, 0.2, 24, 1, true]} />
-                  <meshPhysicalMaterial
-                    color="#ffffff"
-                    transparent
-                    opacity={0.35}
-                    roughness={0.06}
-                    transmission={0.92}
-                    ior={1.52}
-                    side={THREE.DoubleSide}
-                  />
-                </mesh>
+                <Suspense
+                  fallback={
+                    <group>
+                      <mesh position={[0, 0.005, 0]} receiveShadow>
+                        <cylinderGeometry args={[0.032, 0.035, 0.01, 6]} />
+                        <meshStandardMaterial color="#334155" roughness={0.4} />
+                      </mesh>
+                      <mesh position={[0, 0.11, 0]} castShadow>
+                        <cylinderGeometry args={[0.018, 0.018, 0.2, 24, 1, true]} />
+                        <meshPhysicalMaterial
+                          color="#ffffff"
+                          transparent
+                          opacity={0.35}
+                          roughness={0.06}
+                          transmission={0.92}
+                          ior={1.52}
+                          side={THREE.DoubleSide}
+                        />
+                      </mesh>
+                    </group>
+                  }
+                >
+                  <MeasuringCylinderGLB />
+                </Suspense>
                 {/* Liquid */}
                 {v.currentVolumeMl > 0 && (
                   <group position={[0, 0.01, 0]}>
@@ -290,29 +288,36 @@ export function InteractiveVessels({
             {/* 3. FLASK MODEL */}
             {v.type === "flask" && (
               <group position={[0, 0, 0]}>
-                <mesh position={[0, 0.045, 0]} castShadow>
-                  <cylinderGeometry args={[0.02, 0.05, 0.08, 32, 1, true]} />
-                  <meshPhysicalMaterial
-                    color="#ffffff"
-                    transparent
-                    opacity={0.35}
-                    roughness={0.06}
-                    transmission={0.92}
-                    ior={1.52}
-                    side={THREE.DoubleSide}
-                  />
-                </mesh>
-                {/* Flask Glass Bottom */}
-                <mesh position={[0, 0.003, 0]}>
-                  <cylinderGeometry args={[0.05, 0.05, 0.006, 32]} />
-                  <meshPhysicalMaterial
-                    color="#ffffff"
-                    transparent
-                    opacity={0.4}
-                    roughness={0.05}
-                    transmission={0.92}
-                  />
-                </mesh>
+                <Suspense
+                  fallback={
+                    <group>
+                      <mesh position={[0, 0.045, 0]} castShadow>
+                        <cylinderGeometry args={[0.02, 0.05, 0.08, 32, 1, true]} />
+                        <meshPhysicalMaterial
+                          color="#ffffff"
+                          transparent
+                          opacity={0.35}
+                          roughness={0.06}
+                          transmission={0.92}
+                          ior={1.52}
+                          side={THREE.DoubleSide}
+                        />
+                      </mesh>
+                      <mesh position={[0, 0.003, 0]}>
+                        <cylinderGeometry args={[0.05, 0.05, 0.006, 32]} />
+                        <meshPhysicalMaterial
+                          color="#ffffff"
+                          transparent
+                          opacity={0.4}
+                          roughness={0.05}
+                          transmission={0.92}
+                        />
+                      </mesh>
+                    </group>
+                  }
+                >
+                  <ConicalFlaskGLB size="small" scale={0.65} />
+                </Suspense>
                 {v.currentVolumeMl > 0 && (
                   <group position={[0, 0.004, 0]}>
                     <ReactiveFluidColumn
