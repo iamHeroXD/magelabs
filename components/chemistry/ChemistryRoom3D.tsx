@@ -1,8 +1,18 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import * as THREE from "three";
 import { WallLightSwitches3D } from "./equipment/WallLightSwitches3D";
+import {
+  getLabFloorTextures,
+  getCleanroomWallTextures,
+  getAcousticCeilingTexture,
+  getResinWorktopTexture,
+  getSafetyHazardTapeTexture,
+  getPeriodicTableTexture,
+  getSafetySignTexture,
+  getDoorSafetySignTexture,
+} from "./textures/laboratoryTextures";
 
 interface RoomProps {
   ceilingLightsOn?: boolean;
@@ -19,25 +29,47 @@ export function ChemistryRoom3D({
 }: RoomProps) {
   const roomRef = useRef<THREE.Group>(null);
 
+  const textures = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return {
+      floor: getLabFloorTextures(),
+      wall: getCleanroomWallTextures(),
+      ceiling: getAcousticCeilingTexture(),
+      resinWorktop: getResinWorktopTexture(),
+      hazardTape: getSafetyHazardTapeTexture(),
+      periodicTable: getPeriodicTableTexture(),
+      safetySign: getSafetySignTexture(),
+      doorSign: getDoorSafetySignTexture(),
+    };
+  }, []);
+
   return (
     <group ref={roomRef}>
       {/* ─────────────────────────────────────────────────────────────
           1. ROOM ENVELOPE: FLOOR, WALLS, CEILING (1 unit = 1 meter)
          ───────────────────────────────────────────────────────────── */}
-      {/* Floor: Semi-matte Light Gray Epoxy Laboratory Floor */}
+      {/* Floor: High-Precision Terrazzo Epoxy Laboratory Floor with Slate Grout & Flecks */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[13.5, 15.5]} />
         <meshStandardMaterial
-          color="#d1d5db"
+          color="#ffffff"
+          map={textures?.floor.map}
+          bumpMap={textures?.floor.bumpMap}
+          bumpScale={0.003}
+          roughnessMap={textures?.floor.roughnessMap}
           roughness={0.28}
-          metalness={0.08}
+          metalness={0.05}
         />
       </mesh>
 
       {/* Ceiling: Clean White Suspended Acoustic Grid */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 3.8, 0]}>
         <planeGeometry args={[13.5, 15.5]} />
-        <meshStandardMaterial color="#f8fafc" roughness={0.9} />
+        <meshStandardMaterial
+          color="#ffffff"
+          map={textures?.ceiling}
+          roughness={0.92}
+        />
       </mesh>
 
       {/* Six Recessed 600x600 LED Troffers (Toggled by wall switch) */}
@@ -58,25 +90,49 @@ export function ChemistryRoom3D({
       {/* Back Wall (Z = -6.8 m): Campus Windows & Safety Station */}
       <mesh position={[0, 1.9, -7.0]}>
         <planeGeometry args={[13.5, 3.8]} />
-        <meshStandardMaterial color="#f3f4f6" roughness={0.85} />
+        <meshStandardMaterial
+          color="#ffffff"
+          map={textures?.wall.map}
+          bumpMap={textures?.wall.bumpMap}
+          bumpScale={0.002}
+          roughness={0.78}
+        />
       </mesh>
 
       {/* Front Wall (Z = +7.0 m) */}
       <mesh position={[0, 1.9, 7.0]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[13.5, 3.8]} />
-        <meshStandardMaterial color="#f3f4f6" roughness={0.85} />
+        <meshStandardMaterial
+          color="#ffffff"
+          map={textures?.wall.map}
+          bumpMap={textures?.wall.bumpMap}
+          bumpScale={0.002}
+          roughness={0.78}
+        />
       </mesh>
 
       {/* Left Wall (X = -6.0 m): Reagents & Wet Sink Station */}
       <mesh position={[-6.0, 1.9, 0]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[15.5, 3.8]} />
-        <meshStandardMaterial color="#f3f4f6" roughness={0.85} />
+        <meshStandardMaterial
+          color="#ffffff"
+          map={textures?.wall.map}
+          bumpMap={textures?.wall.bumpMap}
+          bumpScale={0.002}
+          roughness={0.78}
+        />
       </mesh>
 
       {/* Right Wall (X = +6.0 m): Fume Hood & Analytical Instruments */}
       <mesh position={[6.0, 1.9, 0]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[15.5, 3.8]} />
-        <meshStandardMaterial color="#f3f4f6" roughness={0.85} />
+        <meshStandardMaterial
+          color="#ffffff"
+          map={textures?.wall.map}
+          bumpMap={textures?.wall.bumpMap}
+          bumpScale={0.002}
+          roughness={0.78}
+        />
       </mesh>
 
       {/* Perimeter Stainless Steel Baseboard / Kicking Rail */}
@@ -100,7 +156,12 @@ export function ChemistryRoom3D({
         {/* Solid Black Chemical-Resistant Resin Worktop */}
         <mesh position={[0, 0.92, 0]} castShadow receiveShadow>
           <boxGeometry args={[4.4, 0.045, 1.8]} />
-          <meshStandardMaterial color="#111317" roughness={0.32} metalness={0.12} />
+          <meshStandardMaterial
+            color="#ffffff"
+            map={textures?.resinWorktop}
+            roughness={0.34}
+            metalness={0.12}
+          />
         </mesh>
 
         {/* Anti-Static ESD Blue Silicone Workstation Mat (Full Equipment Coverage) */}
@@ -616,6 +677,15 @@ export function ChemistryRoom3D({
 
       {/* Emergency Eye Wash & Drench Shower Safety Station */}
       <group position={[4.2, 0, -6.7]}>
+        {/* Wall Safety Sign */}
+        <mesh position={[0, 2.85, -0.24]}>
+          <planeGeometry args={[0.9, 0.45]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            map={textures?.safetySign}
+            roughness={0.3}
+          />
+        </mesh>
         <mesh position={[0, 2.5, 0.4]}>
           <cylinderGeometry args={[0.12, 0.16, 0.06, 24]} />
           <meshStandardMaterial color="#eab308" roughness={0.3} metalness={0.7} />
@@ -632,9 +702,27 @@ export function ChemistryRoom3D({
           <cylinderGeometry args={[0.16, 0.14, 0.12, 24]} />
           <meshStandardMaterial color="#e2e8f0" roughness={0.2} metalness={0.9} />
         </mesh>
+        {/* Yellow Safety Floor Pad */}
         <mesh position={[0, 0.002, 0.35]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.1, 1.1]} />
-          <meshBasicMaterial color="#eab308" />
+          <planeGeometry args={[1.2, 1.2]} />
+          <meshStandardMaterial color="#eab308" roughness={0.3} />
+        </mesh>
+        {/* Perimeter Safety Hazard Tape Border */}
+        <mesh position={[0, 0.003, 0.98]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[1.36, 0.08]} />
+          <meshStandardMaterial color="#ffffff" map={textures?.hazardTape} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0.003, -0.28]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[1.36, 0.08]} />
+          <meshStandardMaterial color="#ffffff" map={textures?.hazardTape} roughness={0.4} />
+        </mesh>
+        <mesh position={[-0.64, 0.003, 0.35]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+          <planeGeometry args={[1.34, 0.08]} />
+          <meshStandardMaterial color="#ffffff" map={textures?.hazardTape} roughness={0.4} />
+        </mesh>
+        <mesh position={[0.64, 0.003, 0.35]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+          <planeGeometry args={[1.34, 0.08]} />
+          <meshStandardMaterial color="#ffffff" map={textures?.hazardTape} roughness={0.4} />
         </mesh>
       </group>
 
@@ -646,7 +734,11 @@ export function ChemistryRoom3D({
         </mesh>
         <mesh position={[0, 0, 0.016]}>
           <planeGeometry args={[2.7, 1.5]} />
-          <meshStandardMaterial color="#f8fafc" roughness={0.9} />
+          <meshStandardMaterial
+            color="#ffffff"
+            map={textures?.periodicTable}
+            roughness={0.3}
+          />
         </mesh>
       </group>
 
@@ -659,6 +751,15 @@ export function ChemistryRoom3D({
         <mesh position={[0.35, 0, 0.04]}>
           <boxGeometry args={[0.12, 0.02, 0.03]} />
           <meshStandardMaterial color="#e2e8f0" roughness={0.15} metalness={0.9} />
+        </mesh>
+        {/* Door Caution & NFPA Hazard Placard */}
+        <mesh position={[0, 0.42, 0.027]}>
+          <planeGeometry args={[0.42, 0.62]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            map={textures?.doorSign}
+            roughness={0.3}
+          />
         </mesh>
       </group>
     </group>

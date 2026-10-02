@@ -13,6 +13,7 @@ import { RobotTask } from "@/components/chemistry/avatar/LabRobotAvatar3D";
 import { RobotMenuModal } from "@/components/chemistry/avatar/RobotMenuModal";
 import { InspectViewMode } from "@/components/chemistry/InspectionCamera";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
+import { ChemistryErrorBoundary } from "@/components/chemistry/ChemistryErrorBoundary";
 
 const ChemistryScene = dynamic(
   () => import("@/components/chemistry/ChemistryScene").then((m) => m.ChemistryScene),
@@ -646,36 +647,38 @@ export default function ChemistryLabPage() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
-      {/* 3D WebGL Canvas Layer */}
-      <ChemistryScene
-        dispensedMl={dispensedMl}
-        currentPh={equilibrium.pH}
-        solutionColor={equilibrium.color}
-        hasIndicator={hasIndicator}
-        stopcockAngle={stopcockAngle}
-        isStopcockOpen={isStopcockOpen}
-        isInspecting={isInspecting}
-        inspectViewMode={inspectViewMode}
-        flowRateMode={flowRateMode}
-        highlightedApparatus={highlightedApparatus}
-        ceilingLightsOn={ceilingLightsOn}
-        taskLightOn={taskLightOn}
-        vessels={vessels}
-        heldVesselId={heldVesselId}
-        isPouring={isPouring}
-        activeRobotTask={activeRobotTask}
-        onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
-        onRobotTaskComplete={() => setActiveRobotTask("idle")}
-        onToggleStopcock={handleToggleStopcock}
-        onAddIndicator={handleAddIndicator}
-        onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
-        onToggleTaskLight={() => setTaskLightOn((prev) => !prev)}
-        onPickUpVessel={handlePickUpVessel}
-        onPourIntoVessel={handlePourIntoVessel}
-        onFlaskClick={handleFlaskClick}
-        onHoverObject={setHoverLabel}
-        onInteract={handleInteract}
-      />
+      {/* 3D WebGL Canvas Layer with Fault-Tolerant Error Boundary */}
+      <ChemistryErrorBoundary>
+        <ChemistryScene
+          dispensedMl={dispensedMl}
+          currentPh={equilibrium.pH}
+          solutionColor={equilibrium.color}
+          hasIndicator={hasIndicator}
+          stopcockAngle={stopcockAngle}
+          isStopcockOpen={isStopcockOpen}
+          isInspecting={isInspecting}
+          inspectViewMode={inspectViewMode}
+          flowRateMode={flowRateMode}
+          highlightedApparatus={highlightedApparatus}
+          ceilingLightsOn={ceilingLightsOn}
+          taskLightOn={taskLightOn}
+          vessels={vessels}
+          heldVesselId={heldVesselId}
+          isPouring={isPouring}
+          activeRobotTask={activeRobotTask}
+          onOpenRobotMenu={() => setIsRobotMenuOpen(true)}
+          onRobotTaskComplete={() => setActiveRobotTask("idle")}
+          onToggleStopcock={handleToggleStopcock}
+          onAddIndicator={handleAddIndicator}
+          onToggleCeilingLights={() => setCeilingLightsOn((prev) => !prev)}
+          onToggleTaskLight={() => setTaskLightOn((prev) => !prev)}
+          onPickUpVessel={handlePickUpVessel}
+          onPourIntoVessel={handlePourIntoVessel}
+          onFlaskClick={handleFlaskClick}
+          onHoverObject={setHoverLabel}
+          onInteract={handleInteract}
+        />
+      </ChemistryErrorBoundary>
 
       {/* Minimalist Chemistry HUD */}
       <ChemistryHUD

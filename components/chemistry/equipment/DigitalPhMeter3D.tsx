@@ -23,19 +23,9 @@ export function DigitalPhMeter3D({
   isHighlighted = false,
 }: PhMeterProps) {
   const [displayMode, setDisplayMode] = useState<"pH" | "mV">("pH");
-  const [liveJitter, setLiveJitter] = useState(0);
 
-  // Micro-fluctuation in sensor reading (real-world electrode noise ~ ±0.005)
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    setLiveJitter(Math.sin(t * 8.2) * 0.004 + Math.cos(t * 4.7) * 0.003);
-  });
-
-  const effectivePh = Math.max(0, Math.min(14, currentPh + liveJitter));
-  const formattedPh = effectivePh.toFixed(2);
-
-  // Nernst Equation slope at 25°C: E = (7.0 - pH) * 59.16 mV
-  const calculatedMv = ((7.0 - effectivePh) * 59.16).toFixed(1);
+  const formattedPh = currentPh.toFixed(2);
+  const calculatedMv = ((7.0 - currentPh) * 59.16).toFixed(1);
 
   const toggleMode = (e: any) => {
     e.stopPropagation();

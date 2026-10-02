@@ -49,7 +49,8 @@ export function LabRobotAvatar3D({
 
   const prevTaskRef = useRef<RobotTask>(activeTask);
   const hasGreetedRef = useRef<boolean>(false);
-  const [isWaving, setIsWaving] = useState(false);
+  const isWavingRef = useRef<boolean>(false);
+  const waveTimerRef = useRef<number>(0);
 
   // ─────────────────────────────────────────────────────────────
   // MATERIALS
@@ -171,12 +172,20 @@ export function LabRobotAvatar3D({
 
     if (isPlayerClose && activeTask === "idle" && !hasGreetedRef.current) {
       hasGreetedRef.current = true;
-      setIsWaving(true);
+      isWavingRef.current = true;
+      waveTimerRef.current = 2.4;
       chemistryAudio.playRobotChime();
-      setTimeout(() => setIsWaving(false), 2400);
     } else if (!isPlayerClose) {
       hasGreetedRef.current = false;
     }
+
+    if (waveTimerRef.current > 0) {
+      waveTimerRef.current -= delta;
+      if (waveTimerRef.current <= 0) {
+        isWavingRef.current = false;
+      }
+    }
+    const isWaving = isWavingRef.current;
 
     if (isWalking) {
       const dir = targetPos.clone().sub(currentPos).normalize();
@@ -374,7 +383,7 @@ export function LabRobotAvatar3D({
 
   const taskStatusLabel =
     activeTask === "idle"
-      ? (isWaving ? "GREETINGS SCIENTIST! READY FOR LAB" : "[ CLICK OR PRESS R FOR PROTOCOLS ]")
+      ? "[ CLICK OR PRESS R FOR PROTOCOLS ]"
       : activeTask === "titrating"
       ? "TITRATING TO EQUIVALENCE pH 8.2"
       : activeTask === "heating"

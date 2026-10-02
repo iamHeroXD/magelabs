@@ -24,15 +24,8 @@ export function AnalyticalBalance3D({
 }: BalanceProps) {
   const [tareOffset, setTareOffset] = useState(0);
   const [isDoorOpen, setIsDoorOpen] = useState(false);
-  const [microNoise, setMicroNoise] = useState(0);
 
-  // Micro-noise sensor simulation (typical ±0.0002 g air draft noise)
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    setMicroNoise(Math.sin(t * 6.5) * 0.0002);
-  });
-
-  const netWeight = Math.max(0, currentWeightG - tareOffset + microNoise);
+  const netWeight = Math.max(0, currentWeightG - tareOffset);
   const formattedWeight = netWeight.toFixed(4);
 
   const handleTare = (e: any) => {
