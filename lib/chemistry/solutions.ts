@@ -70,6 +70,46 @@ export const REAGENT_CATALOG: Record<string, ChemicalSolution> = {
     density: 0.95,
     description: "Acid-base indicator with sharp transition at pH 8.2-10.0.",
   },
+  kmno4: {
+    id: "kmno4",
+    name: "Potassium Permanganate",
+    formula: "KMnO4",
+    concentrationM: 0.050,
+    pH: 6.80,
+    color: "#6b21a8", // Intense violet/purple
+    density: 1.02,
+    description: "Strong oxidizing agent with intense purple coloration.",
+  },
+  fecl3: {
+    id: "fecl3",
+    name: "Iron(III) Chloride",
+    formula: "FeCl3",
+    concentrationM: 0.100,
+    pH: 2.10,
+    color: "#d97706", // Amber gold
+    density: 1.04,
+    description: "Transition metal halide solution with golden yellow color.",
+  },
+  niso4: {
+    id: "niso4",
+    name: "Nickel(II) Sulfate",
+    formula: "NiSO4",
+    concentrationM: 0.100,
+    pH: 5.50,
+    color: "#059669", // Emerald green
+    density: 1.03,
+    description: "Coordination hexaaquanickel(II) complex with brilliant green appearance.",
+  },
+  methyl_orange: {
+    id: "methyl_orange",
+    name: "Methyl Orange Indicator",
+    formula: "C14H14N3NaO3S",
+    concentrationM: 0.010,
+    pH: 3.80,
+    color: "#ea580c", // Vibrant orange
+    density: 0.99,
+    description: "Acid-base azo indicator: Red at pH < 3.1, Yellow at pH > 4.4.",
+  },
 };
 
 /**

@@ -1,8 +1,9 @@
 "use client";
 
+import { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
-import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
 export interface LabVesselState {
   id: string;
@@ -13,6 +14,8 @@ export interface LabVesselState {
   solutionId: string;
   solutionColor: string;
   pH: number;
+  temperatureC?: number;
+  isReacting?: boolean;
   indicator?: string;
   position: [number, number, number];
   isHeld?: boolean;
@@ -23,6 +26,96 @@ interface VesselsProps {
   heldVesselId: string | null;
   onPickUpVessel: (id: string) => void;
   onPourIntoVessel: (targetId: string) => void;
+}
+
+/**
+ * Animated Reactive Liquid Column with Effervescence Bubbles & Meniscus Shimmer
+ */
+function ReactiveFluidColumn({
+  radiusTop,
+  radiusBottom,
+  height,
+  color,
+  isReacting = false,
+}: {
+  radiusTop: number;
+  radiusBottom: number;
+  height: number;
+  color: string;
+  isReacting?: boolean;
+}) {
+  const bubblesRef = useRef<THREE.Group>(null);
+  const meniscusRef = useRef<THREE.Mesh>(null);
+
+  // Generate 8 procedural bubble offsets
+  const bubbleSeeds = useMemo(() => {
+    return Array.from({ length: 8 }).map((_, i) => ({
+      x: (Math.sin(i * 1.7) * 0.7) * radiusTop,
+      z: (Math.cos(i * 2.3) * 0.7) * radiusTop,
+      speed: 0.08 + (i % 4) * 0.04,
+      offset: i * 0.25,
+      scale: 0.0012 + (i % 3) * 0.0006,
+    }));
+  }, [radiusTop]);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+
+    // Subtle fluid meniscus shimmer
+    if (meniscusRef.current) {
+      meniscusRef.current.position.y = height + Math.sin(t * 3.5) * 0.0003;
+    }
+
+    // Animate rising effervescence micro-bubbles
+    if (bubblesRef.current && isReacting) {
+      bubblesRef.current.children.forEach((child, idx) => {
+        const seed = bubbleSeeds[idx];
+        const bubbleY = ((t * seed.speed + seed.offset) % height);
+        child.position.y = bubbleY;
+      });
+    }
+  });
+
+  return (
+    <group>
+      {/* Cylindrical / Conical Solution Mass */}
+      <mesh position={[0, height / 2, 0]}>
+        <cylinderGeometry args={[radiusTop, radiusBottom, height, 24]} />
+        <meshPhysicalMaterial
+          color={color}
+          transparent
+          opacity={0.84}
+          roughness={0.08}
+          transmission={0.65}
+          ior={1.34}
+        />
+      </mesh>
+
+      {/* Glossy Top Fluid Meniscus Surface */}
+      <mesh ref={meniscusRef} position={[0, height, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[radiusTop * 0.99, 24]} />
+        <meshPhysicalMaterial
+          color={color}
+          transparent
+          opacity={0.92}
+          roughness={0.04}
+          transmission={0.7}
+        />
+      </mesh>
+
+      {/* Effervescent Rising Micro-Bubbles (when reacting or boiling) */}
+      {isReacting && (
+        <group ref={bubblesRef}>
+          {bubbleSeeds.map((seed, i) => (
+            <mesh key={i} position={[seed.x, 0, seed.z]}>
+              <sphereGeometry args={[seed.scale, 8, 8]} />
+              <meshBasicMaterial color="#ffffff" transparent opacity={0.8} />
+            </mesh>
+          ))}
+        </group>
+      )}
+    </group>
+  );
 }
 
 export function InteractiveVessels({
@@ -37,6 +130,7 @@ export function InteractiveVessels({
         if (v.id === heldVesselId) return null; // Rendered in first-person hand view
 
         const heightScale = Math.min(1, Math.max(0.1, v.currentVolumeMl / v.capacityMl));
+        const temp = v.temperatureC ?? 25.0;
 
         return (
           <group
@@ -91,30 +185,41 @@ export function InteractiveVessels({
                     <meshBasicMaterial color="#ffffff" side={THREE.DoubleSide} transparent opacity={0.6} />
                   </mesh>
                 ))}
-                {/* Liquid Contents */}
+
+                {/* Reactive Liquid Contents */}
                 {v.currentVolumeMl > 0 && (
-                  <mesh position={[0, 0.003 + (heightScale * 0.08) / 2, 0]}>
-                    <cylinderGeometry args={[0.036, 0.036, heightScale * 0.08, 24]} />
-                    <meshPhysicalMaterial
+                  <group position={[0, 0.004, 0]}>
+                    <ReactiveFluidColumn
+                      radiusTop={0.036}
+                      radiusBottom={0.036}
+                      height={heightScale * 0.08}
                       color={v.solutionColor}
-                      transparent
-                      opacity={0.82}
-                      roughness={0.1}
-                      transmission={0.65}
-                      ior={1.34}
+                      isReacting={v.isReacting || temp > 50}
                     />
-                  </mesh>
+                  </group>
                 )}
-                {/* Floating Name Label */}
-                <Text
-                  position={[0, 0.115, 0]}
-                  fontSize={0.015}
-                  color="#f8fafc"
-                  anchorX="center"
-                  anchorY="middle"
-                >
-                  {`${v.name} (${v.currentVolumeMl.toFixed(0)}mL)`}
-                </Text>
+
+                {/* Floating Telemetry Badge */}
+                <group position={[0, 0.12, 0]}>
+                  <Text
+                    position={[0, 0.012, 0]}
+                    fontSize={0.015}
+                    color="#f8fafc"
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {`${v.name} (${v.currentVolumeMl.toFixed(0)} mL)`}
+                  </Text>
+                  <Text
+                    position={[0, -0.008, 0]}
+                    fontSize={0.011}
+                    color={v.pH < 7 ? "#f43f5e" : v.pH > 7 ? "#38bdf8" : "#4ade80"}
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {`pH ${v.pH.toFixed(1)} · ${temp.toFixed(1)}°C`}
+                  </Text>
+                </group>
               </group>
             )}
 
@@ -141,26 +246,36 @@ export function InteractiveVessels({
                 </mesh>
                 {/* Liquid */}
                 {v.currentVolumeMl > 0 && (
-                  <mesh position={[0, 0.01 + (heightScale * 0.18) / 2, 0]}>
-                    <cylinderGeometry args={[0.016, 0.016, heightScale * 0.18, 24]} />
-                    <meshPhysicalMaterial
+                  <group position={[0, 0.01, 0]}>
+                    <ReactiveFluidColumn
+                      radiusTop={0.016}
+                      radiusBottom={0.016}
+                      height={heightScale * 0.18}
                       color={v.solutionColor}
-                      transparent
-                      opacity={0.8}
-                      roughness={0.1}
-                      transmission={0.7}
+                      isReacting={v.isReacting}
                     />
-                  </mesh>
+                  </group>
                 )}
-                <Text
-                  position={[0, 0.22, 0]}
-                  fontSize={0.014}
-                  color="#f8fafc"
-                  anchorX="center"
-                  anchorY="middle"
-                >
-                  {`${v.name}`}
-                </Text>
+                <group position={[0, 0.23, 0]}>
+                  <Text
+                    position={[0, 0.01, 0]}
+                    fontSize={0.014}
+                    color="#f8fafc"
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {`${v.name}`}
+                  </Text>
+                  <Text
+                    position={[0, -0.008, 0]}
+                    fontSize={0.01}
+                    color="#38bdf8"
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {`pH ${v.pH.toFixed(1)} · ${v.currentVolumeMl.toFixed(0)} mL`}
+                  </Text>
+                </group>
               </group>
             )}
 
@@ -191,26 +306,36 @@ export function InteractiveVessels({
                   />
                 </mesh>
                 {v.currentVolumeMl > 0 && (
-                  <mesh position={[0, 0.003 + (heightScale * 0.06) / 2, 0]}>
-                    <cylinderGeometry args={[0.025, 0.048, heightScale * 0.06, 24]} />
-                    <meshPhysicalMaterial
+                  <group position={[0, 0.004, 0]}>
+                    <ReactiveFluidColumn
+                      radiusTop={0.025}
+                      radiusBottom={0.048}
+                      height={heightScale * 0.06}
                       color={v.solutionColor}
-                      transparent
-                      opacity={0.8}
-                      roughness={0.1}
-                      transmission={0.65}
+                      isReacting={v.isReacting}
                     />
-                  </mesh>
+                  </group>
                 )}
-                <Text
-                  position={[0, 0.115, 0]}
-                  fontSize={0.015}
-                  color="#f8fafc"
-                  anchorX="center"
-                  anchorY="middle"
-                >
-                  {`${v.name} (${v.currentVolumeMl.toFixed(0)}mL)`}
-                </Text>
+                <group position={[0, 0.12, 0]}>
+                  <Text
+                    position={[0, 0.012, 0]}
+                    fontSize={0.015}
+                    color="#f8fafc"
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {`${v.name} (${v.currentVolumeMl.toFixed(0)} mL)`}
+                  </Text>
+                  <Text
+                    position={[0, -0.008, 0]}
+                    fontSize={0.011}
+                    color="#38bdf8"
+                    anchorX="center"
+                    anchorY="middle"
+                  >
+                    {`pH ${v.pH.toFixed(1)} · ${temp.toFixed(1)}°C`}
+                  </Text>
+                </group>
               </group>
             )}
 
@@ -226,7 +351,7 @@ export function InteractiveVessels({
                   <meshStandardMaterial color="#0f172a" roughness={0.8} />
                 </mesh>
                 <Text
-                  position={[0, 0.11, 0]}
+                  position={[0, 0.115, 0]}
                   fontSize={0.014}
                   color="#f8fafc"
                   anchorX="center"

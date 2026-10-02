@@ -12,6 +12,9 @@ import { AnalyticalBalance3D } from "./equipment/AnalyticalBalance3D";
 import { HotplateStirrer3D } from "./equipment/HotplateStirrer3D";
 import { Centrifuge3D } from "./equipment/Centrifuge3D";
 import { InteractiveVessels, LabVesselState } from "./equipment/InteractiveVessels";
+import { TestTubeRack3D } from "./equipment/TestTubeRack3D";
+import { PipetteCarousel3D } from "./equipment/PipetteCarousel3D";
+import { BenchAccessories3D } from "./equipment/BenchAccessories3D";
 import { HandHeldVessel3D } from "./HandHeldVessel3D";
 import { FirstPersonHands3D } from "./FirstPersonHands3D";
 import { LabRobotAvatar3D, RobotTask } from "./avatar/LabRobotAvatar3D";
@@ -78,6 +81,12 @@ export function ChemistryScene({
   onInteract,
 }: ChemistrySceneProps) {
   const heldVessel = vessels.find((v) => v.id === heldVesselId) || null;
+
+  // Analytical balance live mass calculation (empty beaker tare 42.1580 g + fluid mass)
+  const balanceVessel = vessels.find(
+    (v) => Math.hypot(v.position[0] - 0.68, v.position[2] - (-0.08)) < 0.18
+  );
+  const balanceWeightG = balanceVessel ? 42.1580 + balanceVessel.currentVolumeMl * 1.002 : 0.0;
 
   return (
     <div className="absolute inset-0 w-full h-full bg-[#070709]">
@@ -166,7 +175,32 @@ export function ChemistryScene({
           />
 
           {/* Precision Analytical Balance */}
-          <AnalyticalBalance3D position={[0.68, 0.005, -0.08]} rotation={[0, -0.15, 0]} />
+          <AnalyticalBalance3D
+            currentWeightG={balanceWeightG}
+            position={[0.68, 0.005, -0.08]}
+            rotation={[0, -0.15, 0]}
+          />
+
+          {/* 6-Well Chemical Reaction Test Tube Rack */}
+          <TestTubeRack3D
+            position={[-0.18, 0.005, -0.16]}
+            rotation={[0, 0.1, 0]}
+            heldVesselId={heldVesselId}
+            onPickUpTube={(tube) => onPickUpVessel(tube.id)}
+            onPourIntoTube={(tubeId) => onPourIntoVessel(tubeId)}
+          />
+
+          {/* Rotating Micropipette Carousel & Sterile Tip Box */}
+          <PipetteCarousel3D
+            position={[-0.46, 0.005, -0.16]}
+            rotation={[0, -0.2, 0]}
+          />
+
+          {/* Authentic Workbench Accessories: Spot Plate, Watch Glass, Spatula, Timer */}
+          <BenchAccessories3D
+            position={[0.08, 0.005, -0.15]}
+            rotation={[0, 0, 0]}
+          />
 
           {/* Interactive Magnetic Hotplate Stirrer */}
           <HotplateStirrer3D position={[-0.82, 0.005, -0.08]} rotation={[0, 0.25, 0]} />

@@ -98,7 +98,88 @@ const INITIAL_VESSELS: LabVesselState[] = [
     solutionId: "water",
     solutionColor: "#f8fafc",
     pH: 7.0,
+    temperatureC: 25.0,
     position: [-0.82, 0.105, -0.12],
+  },
+  {
+    id: "beaker-balance",
+    name: "Tared Analytical Beaker",
+    type: "beaker",
+    capacityMl: 50,
+    currentVolumeMl: 25,
+    solutionId: "water",
+    solutionColor: "#f8fafc",
+    pH: 7.0,
+    temperatureC: 25.0,
+    position: [0.68, 0.08, -0.08], // On the analytical balance pan
+  },
+  {
+    id: "tube-kmno4",
+    name: "Potassium Permanganate",
+    type: "cylinder",
+    capacityMl: 25,
+    currentVolumeMl: 15,
+    solutionId: "kmno4",
+    solutionColor: "#6b21a8", // Intense violet
+    pH: 6.8,
+    position: [-0.305, 0.015, -0.145],
+  },
+  {
+    id: "tube-fecl3",
+    name: "Iron(III) Chloride",
+    type: "cylinder",
+    capacityMl: 25,
+    currentVolumeMl: 18,
+    solutionId: "fecl3",
+    solutionColor: "#d97706", // Amber gold
+    pH: 2.1,
+    position: [-0.255, 0.015, -0.145],
+  },
+  {
+    id: "tube-cuso4",
+    name: "Copper(II) Sulfate (Tube)",
+    type: "cylinder",
+    capacityMl: 25,
+    currentVolumeMl: 20,
+    solutionId: "cuso4",
+    solutionColor: "#0284c7", // Azure blue
+    pH: 4.2,
+    position: [-0.205, 0.015, -0.145],
+  },
+  {
+    id: "tube-niso4",
+    name: "Nickel(II) Sulfate",
+    type: "cylinder",
+    capacityMl: 25,
+    currentVolumeMl: 16,
+    solutionId: "niso4",
+    solutionColor: "#059669", // Emerald green
+    pH: 5.5,
+    position: [-0.155, 0.015, -0.145],
+  },
+  {
+    id: "tube-mo",
+    name: "Methyl Orange",
+    type: "dropper",
+    capacityMl: 25,
+    currentVolumeMl: 12,
+    solutionId: "methyl_orange",
+    solutionColor: "#ea580c", // Orange
+    pH: 3.8,
+    indicator: "universal",
+    position: [-0.105, 0.015, -0.145],
+  },
+  {
+    id: "tube-effervescent",
+    name: "Reacting Carbonate Mix",
+    type: "cylinder",
+    capacityMl: 25,
+    currentVolumeMl: 14,
+    solutionId: "water",
+    solutionColor: "#f8fafc",
+    pH: 4.0,
+    isReacting: true,
+    position: [-0.055, 0.015, -0.145],
   },
 ];
 
@@ -430,7 +511,13 @@ export default function ChemistryLabPage() {
 
       // Animate pouring motion and play sound
       setIsPouring(true);
-      chemistryAudio.playLiquidDrop();
+
+      const isReactingPair = Math.abs(sourceVessel.pH - targetVessel.pH) > 2.5;
+      if (isReactingPair) {
+        chemistryAudio.playReactionFizz();
+      } else {
+        chemistryAudio.playLiquidDrop();
+      }
 
       const pourAmountMl = Math.min(15, sourceVessel.currentVolumeMl);
 
@@ -456,6 +543,7 @@ export default function ChemistryLabPage() {
                   indicator: v.indicator,
                 }
               );
+              const newTemp = Math.min(85, (v.temperatureC || 25.0) + (isReactingPair ? 15.0 : 0));
               return {
                 ...v,
                 currentVolumeMl: mixed.volumeMl,
@@ -463,6 +551,8 @@ export default function ChemistryLabPage() {
                 pH: mixed.pH,
                 solutionColor: mixed.color,
                 indicator: mixed.indicator,
+                temperatureC: newTemp,
+                isReacting: isReactingPair,
               };
             }
             return v;
@@ -470,6 +560,14 @@ export default function ChemistryLabPage() {
         });
 
         setIsPouring(false);
+
+        if (isReactingPair) {
+          setTimeout(() => {
+            setVessels((prev) =>
+              prev.map((v) => (v.id === targetId ? { ...v, isReacting: false } : v))
+            );
+          }, 3200);
+        }
       }, 650);
     },
     [heldVesselId, vessels]
