@@ -12,6 +12,10 @@ import {
   getPeriodicTableTexture,
   getSafetySignTexture,
   getDoorSafetySignTexture,
+  getWhiteboardTexture,
+  getFumeHoodAirflowMonitorTexture,
+  getDigitalWallClockTexture,
+  getFirstAidBoxTexture,
 } from "./textures/laboratoryTextures";
 
 interface RoomProps {
@@ -40,6 +44,10 @@ export function ChemistryRoom3D({
       periodicTable: getPeriodicTableTexture(),
       safetySign: getSafetySignTexture(),
       doorSign: getDoorSafetySignTexture(),
+      whiteboard: getWhiteboardTexture(),
+      airflowMonitor: getFumeHoodAirflowMonitorTexture(),
+      wallClock: getDigitalWallClockTexture(),
+      firstAid: getFirstAidBoxTexture(),
     };
   }, []);
 
@@ -466,6 +474,145 @@ export function ChemistryRoom3D({
             </mesh>
           </group>
         </group>
+
+        {/* High-Precision Binocular Laboratory Compound Microscope */}
+        <group position={[0.1, 0.93, 2.3]} rotation={[0, Math.PI / 2, 0]}>
+          <mesh position={[0, 0.015, 0]} castShadow>
+            <boxGeometry args={[0.16, 0.03, 0.2]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.7} />
+          </mesh>
+          <mesh position={[0, 0.18, -0.06]} rotation={[-0.15, 0, 0]} castShadow>
+            <boxGeometry args={[0.045, 0.32, 0.06]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.7} />
+          </mesh>
+          <mesh position={[0, 0.14, 0.03]} castShadow>
+            <boxGeometry args={[0.13, 0.012, 0.12]} />
+            <meshStandardMaterial color="#1e293b" roughness={0.2} metalness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.148, 0.03]}>
+            <boxGeometry args={[0.06, 0.002, 0.022]} />
+            <meshPhysicalMaterial color="#ffffff" transparent opacity={0.6} roughness={0.1} transmission={0.9} />
+          </mesh>
+          <mesh position={[0, 0.24, 0.03]} castShadow>
+            <cylinderGeometry args={[0.026, 0.026, 0.016, 16]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.15} metalness={0.95} />
+          </mesh>
+          {[-0.012, 0, 0.012].map((ox, oi) => (
+            <mesh key={oi} position={[ox, 0.21, 0.03]} castShadow>
+              <cylinderGeometry args={[0.006, 0.004, 0.035, 12]} />
+              <meshStandardMaterial color={oi === 0 ? "#ef4444" : oi === 1 ? "#eab308" : "#3b82f6"} roughness={0.2} metalness={0.8} />
+            </mesh>
+          ))}
+          <mesh position={[0, 0.32, -0.01]} rotation={[-0.35, 0, 0]} castShadow>
+            <boxGeometry args={[0.09, 0.05, 0.08]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.7} />
+          </mesh>
+          {[-0.03, 0.03].map((ex, ei) => (
+            <group key={ei} position={[ex, 0.36, 0.01]} rotation={[-0.5, 0, 0]}>
+              <mesh castShadow>
+                <cylinderGeometry args={[0.012, 0.012, 0.07, 16]} />
+                <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
+              </mesh>
+              <mesh position={[0, 0.038, 0]}>
+                <cylinderGeometry args={[0.014, 0.014, 0.015, 16]} />
+                <meshStandardMaterial color="#0f172a" roughness={0.8} />
+              </mesh>
+            </group>
+          ))}
+          {[-0.075, 0.075].map((kx, ki) => (
+            <mesh key={ki} position={[kx, 0.12, -0.06]} rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.022, 16]} />
+              <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Heavy Borosilicate Glass Vacuum Desiccator Chamber */}
+        <group position={[0.1, 0.93, -0.6]}>
+          <mesh position={[0, 0.07, 0]} castShadow>
+            <cylinderGeometry args={[0.13, 0.11, 0.14, 28]} />
+            <meshPhysicalMaterial color="#ffffff" transparent opacity={0.4} roughness={0.08} transmission={0.92} ior={1.52} />
+          </mesh>
+          <mesh position={[0, 0.025, 0]}>
+            <cylinderGeometry args={[0.105, 0.105, 0.035, 24]} />
+            <meshStandardMaterial color="#2563eb" roughness={0.7} />
+          </mesh>
+          <mesh position={[0, 0.06, 0]}>
+            <cylinderGeometry args={[0.115, 0.115, 0.008, 24]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.4} />
+          </mesh>
+          <mesh position={[0, 0.17, 0]} castShadow>
+            <sphereGeometry args={[0.135, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshPhysicalMaterial color="#ffffff" transparent opacity={0.38} roughness={0.08} transmission={0.92} ior={1.52} />
+          </mesh>
+          <mesh position={[0, 0.14, 0]}>
+            <torusGeometry args={[0.132, 0.008, 12, 32]} />
+            <meshPhysicalMaterial color="#ffffff" transparent opacity={0.5} roughness={0.3} transmission={0.7} />
+          </mesh>
+          <mesh position={[0, 0.28, 0]}>
+            <cylinderGeometry args={[0.012, 0.015, 0.045, 16]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.9} />
+          </mesh>
+        </group>
+
+        {/* Laboratory Bunsen Burner with Glowing Blue Flame */}
+        <group position={[0.1, 0.93, 0.9]}>
+          <mesh position={[0, 0.012, 0]} castShadow>
+            <cylinderGeometry args={[0.048, 0.054, 0.024, 24]} />
+            <meshStandardMaterial color="#1e293b" roughness={0.4} metalness={0.8} />
+          </mesh>
+          <mesh position={[0.045, 0.015, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.006, 0.006, 0.03, 12]} />
+            <meshStandardMaterial color="#d97706" roughness={0.3} metalness={0.8} />
+          </mesh>
+          <mesh position={[0.16, 0.012, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.005, 0.005, 0.22, 12]} />
+            <meshStandardMaterial color="#ea580c" roughness={0.7} />
+          </mesh>
+          <mesh position={[0, 0.085, 0]} castShadow>
+            <cylinderGeometry args={[0.011, 0.011, 0.12, 16]} />
+            <meshStandardMaterial color="#d97706" roughness={0.25} metalness={0.85} />
+          </mesh>
+          <mesh position={[0, 0.04, 0]}>
+            <cylinderGeometry args={[0.013, 0.013, 0.02, 16]} />
+            <meshStandardMaterial color="#94a3b8" roughness={0.2} metalness={0.9} />
+          </mesh>
+          <mesh position={[0, 0.175, 0]}>
+            <coneGeometry args={[0.007, 0.045, 16]} />
+            <meshBasicMaterial color="#38bdf8" transparent opacity={0.85} />
+          </mesh>
+          <mesh position={[0, 0.185, 0]}>
+            <coneGeometry args={[0.012, 0.07, 16]} />
+            <meshBasicMaterial color="#0284c7" transparent opacity={0.45} />
+          </mesh>
+          <pointLight position={[0, 0.2, 0]} intensity={1.2} distance={2.2} color="#38bdf8" />
+        </group>
+
+        {/* Magnetic Laboratory Dry-Erase Whiteboard mounted on wall behind counter */}
+        <group position={[-0.67, 2.15, 0.5]} rotation={[0, Math.PI / 2, 0]}>
+          <mesh>
+            <boxGeometry args={[3.2, 1.4, 0.03]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.85} />
+          </mesh>
+          <mesh position={[0, 0, 0.016]}>
+            <planeGeometry args={[3.14, 1.34]} />
+            <meshStandardMaterial color="#ffffff" map={textures?.whiteboard} roughness={0.25} />
+          </mesh>
+          <mesh position={[0, -0.69, 0.045]}>
+            <boxGeometry args={[3.14, 0.02, 0.06]} />
+            <meshStandardMaterial color="#94a3b8" roughness={0.2} metalness={0.88} />
+          </mesh>
+          {[-0.2, 0, 0.2].map((mx, mi) => (
+            <mesh key={mi} position={[mx, -0.67, 0.045]} rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.007, 0.007, 0.11, 12]} />
+              <meshStandardMaterial color={mi === 0 ? "#0f172a" : mi === 1 ? "#0284c7" : "#ef4444"} roughness={0.3} />
+            </mesh>
+          ))}
+          <mesh position={[0.45, -0.67, 0.045]}>
+            <boxGeometry args={[0.12, 0.025, 0.05]} />
+            <meshStandardMaterial color="#334155" roughness={0.8} />
+          </mesh>
+        </group>
       </group>
 
       {/* ─────────────────────────────────────────────────────────────
@@ -558,11 +705,47 @@ export function ChemistryRoom3D({
           <cylinderGeometry args={[0.22, 0.22, 0.8, 24]} />
           <meshStandardMaterial color="#94a3b8" roughness={0.2} metalness={0.88} />
         </mesh>
+
+        {/* Fume Hood Digital Face Velocity Airflow Monitor */}
+        <group position={[-0.71, 1.85, 1.05]} rotation={[0, -Math.PI / 2, 0]}>
+          <mesh>
+            <boxGeometry args={[0.26, 0.15, 0.03]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.7} />
+          </mesh>
+          <mesh position={[0, 0, 0.016]}>
+            <planeGeometry args={[0.24, 0.13]} />
+            <meshStandardMaterial color="#ffffff" map={textures?.airflowMonitor} roughness={0.3} />
+          </mesh>
+        </group>
       </group>
 
       {/* ─────────────────────────────────────────────────────────────
           5. BACK WALL: ARCHITECTURAL CAMPUS WINDOWS & SAFETY STATION
          ───────────────────────────────────────────────────────────── */}
+      {/* Cleanroom Digital Atomic Wall Clock & Telemetry */}
+      <group position={[-1.8, 3.25, -6.95]}>
+        <mesh>
+          <boxGeometry args={[1.5, 0.38, 0.04]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
+        </mesh>
+        <mesh position={[0, 0, 0.022]}>
+          <planeGeometry args={[1.44, 0.34]} />
+          <meshStandardMaterial color="#ffffff" map={textures?.wallClock} roughness={0.3} />
+        </mesh>
+      </group>
+
+      {/* Emergency First Aid Kit Cabinet */}
+      <group position={[3.0, 2.1, -6.95]}>
+        <mesh>
+          <boxGeometry args={[0.42, 0.42, 0.12]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.3} metalness={0.3} />
+        </mesh>
+        <mesh position={[0, 0, 0.062]}>
+          <planeGeometry args={[0.4, 0.4]} />
+          <meshStandardMaterial color="#ffffff" map={textures?.firstAid} roughness={0.3} />
+        </mesh>
+      </group>
+
       {/* Lower Wall Wainscot & Aluminum Trim */}
       <mesh position={[0, 0.5, -6.99]}>
         <planeGeometry args={[13.5, 1.0]} />

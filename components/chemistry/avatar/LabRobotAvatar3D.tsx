@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
+import { Text, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import { chemistryAudio } from "@/lib/audio/chemistry-audio";
 
@@ -131,13 +131,26 @@ export function LabRobotAvatar3D({
   const currentWaypointIndex = useRef(0);
   const waypointTimerRef = useRef(0);
 
-  // Audio feedback on task transition
+  // Audio & Voice Synthesis feedback on task transition
   useEffect(() => {
     if (activeTask !== prevTaskRef.current) {
-      if (activeTask !== "idle") {
+      if (activeTask === "titrating") {
         chemistryAudio.playRobotServo();
+        chemistryAudio.speakRobotVoice("Beginning automated acid-base titration to equivalence point.");
+      } else if (activeTask === "heating") {
+        chemistryAudio.playRobotServo();
+        chemistryAudio.speakRobotVoice("Engaging magnetic hotplate stirrer at 85 degrees Celsius.");
+      } else if (activeTask === "centrifuging") {
+        chemistryAudio.playRobotServo();
+        chemistryAudio.speakRobotVoice("Starting high-speed centrifuge separation at 8,000 RPM.");
+      } else if (activeTask === "cleaning") {
+        chemistryAudio.playRobotServo();
+        chemistryAudio.speakRobotVoice("Sanitizing laboratory workstation and resetting glassware.");
       } else {
         chemistryAudio.playRobotChime();
+        if (prevTaskRef.current !== "idle") {
+          chemistryAudio.speakRobotVoice("Protocol complete. Workstation ready.");
+        }
       }
       prevTaskRef.current = activeTask;
     }
@@ -175,6 +188,7 @@ export function LabRobotAvatar3D({
       isWavingRef.current = true;
       waveTimerRef.current = 2.4;
       chemistryAudio.playRobotChime();
+      chemistryAudio.speakRobotVoice("Hello Scientist! Dr. AURA ready for laboratory protocol.");
     } else if (!isPlayerClose) {
       hasGreetedRef.current = false;
     }
@@ -402,10 +416,10 @@ export function LabRobotAvatar3D({
       }}
     >
       {/* ─────────────────────────────────────────────────────────────
-          1. FLOATING HOLOGRAPHIC SCIENTIST BADGE
+          1. FLOATING HOLOGRAPHIC SCIENTIST BADGE (Always faces player)
          ───────────────────────────────────────────────────────────── */}
-      <group position={[0, 1.95, 0]}>
-        <mesh position={[0, 0, 0]}>
+      <Billboard position={[0, 1.95, 0]}>
+        <mesh position={[0, 0, -0.002]}>
           <planeGeometry args={[0.76, 0.16]} />
           <meshBasicMaterial color="#030712" transparent opacity={0.88} />
         </mesh>
@@ -427,7 +441,7 @@ export function LabRobotAvatar3D({
         >
           {taskStatusLabel}
         </Text>
-      </group>
+      </Billboard>
 
       {/* ─────────────────────────────────────────────────────────────
           2. ANDROID SCIENTIST HEAD & CYBERNETIC VISOR (Y = 1.58m)

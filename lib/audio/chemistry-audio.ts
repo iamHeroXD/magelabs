@@ -370,6 +370,38 @@ class ChemistryAudioEngine {
     osc.start();
     osc.stop(ctx.currentTime + 0.2);
   }
+
+  // Dr. AURA Speech Synthesis Voice Engine
+  public speakRobotVoice(text: string) {
+    if (this.isMuted || typeof window === "undefined" || !("speechSynthesis" in window)) {
+      this.playRobotChime();
+      return;
+    }
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.05;
+      utterance.pitch = 1.15; // slightly higher pitch for crisp android clarity
+      utterance.volume = 0.85;
+
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice =
+        voices.find(
+          (v) =>
+            v.lang.startsWith("en") &&
+            (v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Samantha"))
+        ) || voices.find((v) => v.lang.startsWith("en"));
+
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      this.playRobotChime();
+    }
+  }
 }
 
 export const chemistryAudio = new ChemistryAudioEngine();
+

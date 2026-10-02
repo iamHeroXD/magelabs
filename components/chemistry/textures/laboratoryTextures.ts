@@ -15,6 +15,10 @@ interface TextureCache {
   hazardTapeMap?: THREE.CanvasTexture;
   safetySignMap?: THREE.CanvasTexture;
   doorSignMap?: THREE.CanvasTexture;
+  whiteboardMap?: THREE.CanvasTexture;
+  airflowMonitorMap?: THREE.CanvasTexture;
+  wallClockMap?: THREE.CanvasTexture;
+  firstAidMap?: THREE.CanvasTexture;
 }
 
 const textureCache: TextureCache = {};
@@ -713,3 +717,336 @@ export function getDoorSafetySignTexture(): THREE.CanvasTexture {
   textureCache.doorSignMap = doorSignMap;
   return doorSignMap;
 }
+
+/**
+ * High-Detail Laboratory Whiteboard Texture (1024 x 512)
+ * Authentic dry-erase titration curve graph, stoichiometry formulas, and indicator scales.
+ */
+export function getWhiteboardTexture(): THREE.CanvasTexture {
+  if (textureCache.whiteboardMap) return textureCache.whiteboardMap;
+
+  const width = 1024;
+  const height = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  // Glossy dry-erase porcelain whiteboard surface
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+
+  // Subtle erased marker smudges / dry-erase stipple
+  ctx.fillStyle = "rgba(226, 232, 240, 0.25)";
+  for (let i = 0; i < 400; i++) {
+    const rx = Math.random() * width;
+    const ry = Math.random() * height;
+    ctx.fillRect(rx, ry, Math.random() * 8, Math.random() * 4);
+  }
+
+  // Header Title in Navy Dry-Erase Marker
+  ctx.fillStyle = "#1e3a8a";
+  ctx.font = "bold 20px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("EXPERIMENT PROTOCOL // STRONG ACID - STRONG BASE TITRATION", 36, 42);
+
+  ctx.fillStyle = "#0284c7";
+  ctx.font = "bold 13px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("REACTION EQUILIBRIUM & EQUIVALENCE STOICHIOMETRY", 36, 64);
+
+  // Balanced Chemical Equation Box
+  ctx.fillStyle = "rgba(240, 249, 255, 0.8)";
+  ctx.fillRect(36, 80, 440, 52);
+  ctx.strokeStyle = "#38bdf8";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(36, 80, 440, 52);
+
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 15px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("HCl (aq) + NaOH (aq) ➔ NaCl (aq) + H₂O (l)", 50, 104);
+  ctx.fillStyle = "#475569";
+  ctx.font = "11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("ΔH°_neutralization = -57.3 kJ/mol (Exothermic Reaction)", 50, 122);
+
+  // Stoichiometry Math Relations
+  ctx.fillStyle = "#047857";
+  ctx.font = "bold 13px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("M₁·V₁ = M₂·V₂   ➔   M_acid = (M_base × V_base) / V_acid", 36, 160);
+
+  ctx.fillStyle = "#334155";
+  ctx.font = "12px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("• Analyte: 25.0 mL Unknown HCl Solution", 36, 185);
+  ctx.fillText("• Titrant: 0.100 M Standardized NaOH in Volumetric Buret", 36, 205);
+  ctx.fillText("• Indicator: Phenolphthalein (1% ethanolic solution, 2-3 drops)", 36, 225);
+  ctx.fillText("• Expected Equivalence Volume: V_eq = 25.00 mL (pH = 7.00)", 36, 245);
+  ctx.fillText("• Phenolphthalein Color Change: Colorless ➔ Faint Pink (pH 8.20)", 36, 265);
+
+  // Universal Indicator Reference Color Band
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 12px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("UNIVERSAL INDICATOR pH COLOR SPECTRUM:", 36, 310);
+
+  const phColors = [
+    { ph: 1, c: "#ef4444" },
+    { ph: 3, c: "#f97316" },
+    { ph: 5, c: "#eab308" },
+    { ph: 7, c: "#22c55e" },
+    { ph: 9, c: "#06b6d4" },
+    { ph: 11, c: "#3b82f6" },
+    { ph: 13, c: "#8b5cf6" },
+  ];
+  phColors.forEach((p, idx) => {
+    const px = 36 + idx * 62;
+    ctx.fillStyle = p.c;
+    ctx.fillRect(px, 322, 58, 20);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`pH ${p.ph}`, px + 14, 336);
+  });
+
+  // Safety Warning Box
+  ctx.fillStyle = "rgba(254, 242, 242, 0.85)";
+  ctx.fillRect(36, 365, 440, 50);
+  ctx.strokeStyle = "#ef4444";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(36, 365, 440, 50);
+
+  ctx.fillStyle = "#b91c1c";
+  ctx.font = "bold 12px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("SAFETY: Corrosive mineral acids & caustic bases.", 50, 386);
+  ctx.fillStyle = "#7f1d1d";
+  ctx.font = "11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("Nitrile gloves & splash goggles required. Eyewash station at East wall.", 50, 403);
+
+  // ─────────────────────────────────────────────────────────────
+  // RIGHT SIDE: HAND-DRAWN SIGMOIDAL TITRATION CURVE GRAPH
+  // ─────────────────────────────────────────────────────────────
+  const gx = 540;
+  const gy = 80;
+  const gw = 430;
+  const gh = 330;
+
+  // Graph Grid Background
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(gx, gy, gw, gh);
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(gx, gy, gw, gh);
+
+  // Light Grid lines
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.setLineDash([4, 4]);
+  for (let yVal = 0; yVal <= 14; yVal += 2) {
+    const py = gy + gh - (yVal / 14) * (gh - 40) - 20;
+    ctx.beginPath();
+    ctx.moveTo(gx + 40, py);
+    ctx.lineTo(gx + gw - 15, py);
+    ctx.stroke();
+  }
+  for (let xVal = 0; xVal <= 40; xVal += 10) {
+    const px = gx + 45 + (xVal / 40) * (gw - 65);
+    ctx.beginPath();
+    ctx.moveTo(px, gy + 15);
+    ctx.lineTo(px, gy + gh - 20);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]); // Reset dash
+
+  // Axes
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  // Y-axis
+  ctx.moveTo(gx + 40, gy + 15);
+  ctx.lineTo(gx + 40, gy + gh - 20);
+  // X-axis
+  ctx.lineTo(gx + gw - 15, gy + gh - 20);
+  ctx.stroke();
+
+  // Axis Labels
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("pH", gx + 15, gy + 22);
+  ctx.fillText("0", gx + 25, gy + gh - 18);
+  ctx.fillText("7", gx + 25, gy + gh - (7 / 14) * (gh - 40) - 16);
+  ctx.fillText("14", gx + 20, gy + 32);
+
+  ctx.fillText("Volume of 0.1M NaOH (mL)", gx + gw / 2 - 50, gy + gh - 4);
+  ctx.fillText("0", gx + 42, gy + gh - 6);
+  ctx.fillText("25 mL (Equivalence)", gx + 45 + (25 / 40) * (gw - 65) - 40, gy + gh - 6);
+
+  // Sigmoidal Curve (Drawn mathematically)
+  ctx.strokeStyle = "#0284c7";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  let firstPoint = true;
+  for (let v = 0; v <= 40; v += 0.5) {
+    // Henderson-Hasselbalch style pH curve approximation
+    let pH = 1.0;
+    if (v < 25.0) {
+      const remainingMol = (0.1 * 25.0 - 0.1 * v) / (25.0 + v);
+      pH = Math.max(1.0, -Math.log10(Math.max(1e-7, remainingMol)));
+    } else if (v === 25.0) {
+      pH = 7.0;
+    } else {
+      const excessMol = (0.1 * (v - 25.0)) / (25.0 + v);
+      pH = Math.min(13.0, 14.0 + Math.log10(Math.max(1e-7, excessMol)));
+    }
+
+    const cxPoint = gx + 45 + (v / 40) * (gw - 65);
+    const cyPoint = gy + gh - (pH / 14) * (gh - 40) - 20;
+
+    if (firstPoint) {
+      ctx.moveTo(cxPoint, cyPoint);
+      firstPoint = false;
+    } else {
+      ctx.lineTo(cxPoint, cyPoint);
+    }
+  }
+  ctx.stroke();
+
+  // Equivalence Point Marker (Green Dot)
+  const eqX = gx + 45 + (25 / 40) * (gw - 65);
+  const eqY = gy + gh - (7 / 14) * (gh - 40) - 20;
+  ctx.fillStyle = "#16a34a";
+  ctx.beginPath();
+  ctx.arc(eqX, eqY, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#16a34a";
+  ctx.font = "bold 11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("Equivalence (pH 7.00)", eqX + 10, eqY - 2);
+
+  // Phenolphthalein Endpoint Marker (Magenta Dot)
+  const epY = gy + gh - (8.2 / 14) * (gh - 40) - 20;
+  ctx.fillStyle = "#f43f5e";
+  ctx.beginPath();
+  ctx.arc(eqX, epY, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#f43f5e";
+  ctx.font = "bold 11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("Endpoint (pH 8.20)", eqX + 10, epY - 4);
+
+  const wbTexture = new THREE.CanvasTexture(canvas);
+  textureCache.whiteboardMap = wbTexture;
+  return wbTexture;
+}
+
+/**
+ * Fume Hood Digital Face Velocity Airflow Monitor (256 x 128)
+ */
+export function getFumeHoodAirflowMonitorTexture(): THREE.CanvasTexture {
+  if (textureCache.airflowMonitorMap) return textureCache.airflowMonitorMap;
+
+  const width = 256;
+  const height = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#090d16";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(2, 2, width - 4, height - 4);
+
+  // Digital green LED velocity digits
+  ctx.fillStyle = "#22c55e";
+  ctx.font = "bold 32px 'Courier New', monospace";
+  ctx.fillText("100 FPM", 22, 45);
+
+  ctx.fillStyle = "#4ade80";
+  ctx.font = "bold 14px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("STATUS: NORMAL AIRFLOW", 22, 75);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("MAX SASH HEIGHT: 18 INCHES", 22, 102);
+
+  // Green status LED circle
+  ctx.fillStyle = "#22c55e";
+  ctx.beginPath();
+  ctx.arc(width - 32, 38, 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  const monitorTexture = new THREE.CanvasTexture(canvas);
+  textureCache.airflowMonitorMap = monitorTexture;
+  return monitorTexture;
+}
+
+/**
+ * Digital Cleanroom Wall Clock & Environmental Telemetry (512 x 128)
+ */
+export function getDigitalWallClockTexture(): THREE.CanvasTexture {
+  if (textureCache.wallClockMap) return textureCache.wallClockMap;
+
+  const width = 512;
+  const height = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#030712";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = "#1e293b";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(2, 2, width - 4, height - 4);
+
+  // Red LED digital 7-segment clock time
+  ctx.fillStyle = "#ef4444";
+  ctx.font = "bold 44px 'Courier New', monospace";
+  ctx.fillText("11:45:00 UTC", 32, 54);
+
+  // Cleanroom Environmental Readouts in cyan
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "bold 16px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("CLEANROOM ISO-5 // 21.8°C // 45.2% RH // P: +25 Pa", 32, 95);
+
+  const clockTexture = new THREE.CanvasTexture(canvas);
+  textureCache.wallClockMap = clockTexture;
+  return clockTexture;
+}
+
+/**
+ * Emergency First Aid Kit Cabinet Texture (256 x 256)
+ */
+export function getFirstAidBoxTexture(): THREE.CanvasTexture {
+  if (textureCache.firstAidMap) return textureCache.firstAidMap;
+
+  const width = 256;
+  const height = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(4, 4, width - 8, height - 8);
+
+  // Green Cross
+  ctx.fillStyle = "#15803d";
+  ctx.fillRect(width / 2 - 50, height / 2 - 16, 100, 32);
+  ctx.fillRect(width / 2 - 16, height / 2 - 50, 32, 100);
+
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 16px 'Segoe UI', Roboto, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("FIRST AID STATION", width / 2, 42);
+
+  ctx.fillStyle = "#64748b";
+  ctx.font = "11px 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("INSPECTED & SEALED", width / 2, 220);
+
+  const faTexture = new THREE.CanvasTexture(canvas);
+  textureCache.firstAidMap = faTexture;
+  return faTexture;
+}
+

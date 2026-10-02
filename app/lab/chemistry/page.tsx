@@ -283,6 +283,20 @@ export default function ChemistryLabPage() {
     };
   }, [isStopcockOpen, flowRateMode]);
 
+  // Vocalize when stoichiometric equivalence endpoint is reached
+  const hasSpokenEndpointRef = useRef(false);
+  useEffect(() => {
+    if (equilibrium.isEndpoint && !hasSpokenEndpointRef.current) {
+      hasSpokenEndpointRef.current = true;
+      chemistryAudio.playRobotChime();
+      chemistryAudio.speakRobotVoice(
+        "Stoichiometric endpoint reached at pH 8.2! Permanent faint pink solution observed."
+      );
+    } else if (!equilibrium.isEndpoint && dispensedMl === 0) {
+      hasSpokenEndpointRef.current = false;
+    }
+  }, [equilibrium.isEndpoint, dispensedMl]);
+
   // Autonomous Robot Task Execution Handler
   const handleStartRobotTask = useCallback((task: RobotTask) => {
     setActiveRobotTask(task);
@@ -314,6 +328,9 @@ export default function ChemistryLabPage() {
         setStopcockAngle(0);
         setFlowRateMode("closed");
         chemistryAudio.playStopcockClick();
+        chemistryAudio.speakRobotVoice(
+          "Stoichiometric equivalence achieved at 25.0 mL! Permanent faint pink solution verified."
+        );
       }, 7000);
 
       // Step 4: Finish task at 8.0s
